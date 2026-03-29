@@ -134,18 +134,18 @@ def build_index(stocks: list) -> str:
         months_map[s["report_date"][:7]].append((i, s))
     sorted_months = sorted(months_map.keys(), reverse=True)
 
-    # Build tab bar: month group buttons + per-stock ticker tabs
-    tab_bar_html = ""
+    # Build tab bar: month dropdown + per-stock ticker tabs
+    options_html = "".join(
+        f'<option value="{m}">{_dt.strptime(m, "%Y-%m").strftime("%B %Y")}</option>'
+        for m in sorted_months
+    )
+    month_dropdown = f"""<select class="month-select" id="month-select" onchange="switchMonth(this.value)">{options_html}</select>"""
+
+    tab_bar_html = month_dropdown
     first_stock = True
     for m in sorted_months:
-        month_label = _dt.strptime(m, "%Y-%m").strftime("%b %Y")
-        indices = [i for i, s in months_map[m]]
-        tab_bar_html += (
-            f'<button class="month-tab" onclick="switchMonth(\'{m}\')" '
-            f'id="mtab-{m}">{month_label}</button>'
-        )
         for i, s in months_map[m]:
-            tags_str = " ".join(s.get("tags", []))
+            tags_str  = " ".join(s.get("tags", []))
             active_cls = " active" if first_stock else ""
             tab_bar_html += (
                 f'<button class="tab{active_cls}" onclick="switchTab({i})" '
@@ -158,20 +158,24 @@ def build_index(stocks: list) -> str:
     panels = ""
     prev_month = None
     for i, s in enumerate(active):
-        month    = s["report_date"][:7]
-        pre      = s.get("default_pre",  60)
-        post     = s.get("default_post", 60)
-        tags     = s.get("tags", [])
-        tags_str = " ".join(tags)
-        tags_html= "".join(f'<span class="tag-pill">{t}</span>' for t in tags)
+        month       = s["report_date"][:7]
+        pre         = s.get("default_pre",  60)
+        post        = s.get("default_post", 60)
+        tags        = s.get("tags", [])
+        tags_str    = " ".join(tags)
+        tags_html   = "".join(f'<span class="tag-pill">{t}</span>' for t in tags)
+        target_price = s.get("target_price", "")
 
         if month != prev_month:
             label = _dt.strptime(month, "%Y-%m").strftime("%B %Y")
             panels += f'<div class="month-header" data-month="{month}">{label}</div>'
             prev_month = month
 
+        # target_price data attribute (empty string if not set)
+        tp_attr = f'data-target="{target_price}"' if target_price else ''
+
         panels += f"""
-<div class="panel {'visible' if i == 0 else 'hidden'}" id="panel-{i}" data-month="{month}" data-tags="{tags_str}">
+<div class="panel {'visible' if i == 0 else 'hidden'}" id="panel-{i}" data-month="{month}" data-tags="{tags_str}" {tp_attr}>
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">{s["ticker"]}</span>
@@ -185,6 +189,7 @@ def build_index(stocks: list) -> str:
   </div>
   {'<div class="tag-row">' + tags_html + '</div>' if tags_html else ""}
   {'<p class="thesis-text">' + s["thesis"] + '</p>' if s.get("thesis") else ""}
+  <div class="price-stat-row" id="pstat-{i}"></div>
   <div class="embed-bar" id="embedbar-{i}" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-{i}"></span>
@@ -338,15 +343,24 @@ html.dark{{
   --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
 }}
 
-/* ── Month group tabs ── */
-.month-tab{{font-family:var(--mono);font-size:10px;font-weight:600;
-  letter-spacing:.1em;text-transform:uppercase;padding:6px 14px 8px;
-  border:none;border-radius:4px 4px 0 0;background:var(--panel2);
-  color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;
-  white-space:nowrap;transition:all .15s;margin-right:4px}}
-.month-tab:hover{{color:var(--text)}}
-.month-tab.active{{background:var(--panel);color:var(--accent);border-bottom-color:var(--accent)}}
-.month-tab.hidden{{display:none}}
+/* ── Month dropdown ── */
+.month-select{{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.06em;padding:5px 10px;border-radius:4px;
+  border:1px solid var(--border);background:var(--panel2);color:var(--text);
+  cursor:pointer;outline:none;margin-right:8px;transition:border .15s}}
+.month-select:hover{{border-color:var(--accent)}}
+.month-select:focus{{border-color:var(--accent)}}
+
+/* ── Price stat row ── */
+.price-stat-row{{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;
+  font-family:var(--mono);font-size:11px}}
+.pstat{{padding:6px 12px;border-radius:6px;background:var(--panel);
+  border:1px solid var(--border);display:flex;flex-direction:column;gap:2px}}
+.pstat-label{{font-size:9px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}}
+.pstat-value{{font-size:14px;font-weight:600;color:var(--text)}}
+.pstat-value.up{{color:var(--green)}}
+.pstat-value.dn{{color:var(--red)}}
+.pstat-value.neutral{{color:var(--sub)}}
 
 /* ── Theme toggle ── */
 .theme-toggle{{font-family:var(--mono);font-size:10px;padding:3px 10px;
@@ -427,22 +441,25 @@ let activeMonth = null;
 
 function switchMonth(month) {{
   activeMonth = month;
-  // Update month-tab highlight
-  document.querySelectorAll('.month-tab').forEach(b => {{
-    b.classList.toggle('active', b.id === 'mtab-'+month);
-  }});
+  // Sync dropdown value
+  const sel = document.getElementById('month-select');
+  if (sel) sel.value = month;
+
   // Show only tabs belonging to this month
   const allTabs = document.querySelectorAll('.tab');
   let firstVisible = -1;
-  allTabs.forEach((t, i) => {{
-    const show = t.dataset.month === month && !t.classList.contains('tag-hidden');
-    t.classList.toggle('month-hidden', t.dataset.month !== month);
-    if (show && firstVisible === -1) firstVisible = i;
+  allTabs.forEach((t, idx) => {{
+    const inMonth = t.dataset.month === month;
+    const inTag   = !t.classList.contains('tag-hidden');
+    t.classList.toggle('month-hidden', !inMonth);
+    if (inMonth && inTag && firstVisible === -1) firstVisible = idx;
   }});
-  // Show/hide month headers in content
+
+  // Show/hide month headers
   document.querySelectorAll('.month-header').forEach(h => {{
     h.style.display = h.dataset.month === month ? '' : 'none';
   }});
+
   if (firstVisible >= 0) switchTab(firstVisible);
 }}
 
@@ -483,15 +500,13 @@ document.addEventListener('DOMContentLoaded', () => {{
     if (el) el.textContent = `${{baseUrl}}?ticker=${{s.ticker}}&embed=1`;
   }});
 
-  // Activate first month tab
-  const firstMonthTab = document.querySelector('.month-tab');
-  if (firstMonthTab) {{
-    firstMonthTab.classList.add('active');
-    activeMonth = firstMonthTab.id.replace('mtab-','');
-    // Hide all tabs not in this month initially
+  // Activate first month via dropdown
+  const sel = document.getElementById('month-select');
+  if (sel && sel.options.length > 0) {{
+    activeMonth = sel.options[0].value;
+    sel.value   = activeMonth;
     document.querySelectorAll('.tab').forEach(t => {{
-      if (t.dataset.month !== activeMonth)
-        t.classList.add('month-hidden');
+      if (t.dataset.month !== activeMonth) t.classList.add('month-hidden');
     }});
     document.querySelectorAll('.month-header').forEach(h => {{
       if (h.dataset.month !== activeMonth) h.style.display = 'none';
@@ -823,6 +838,72 @@ function redraw(i) {{
 
   const upEl = document.getElementById('updated-'+i);
   if (upEl) upEl.textContent = 'Updated ' + json.generated;
+
+  // ── Price stats ────────────────────────────────────────────────────────
+  const statEl = document.getElementById('pstat-'+i);
+  if (!statEl) return;
+
+  const panelEl = document.getElementById('panel-'+i);
+  const target  = panelEl ? parseFloat(panelEl.dataset.target) : NaN;
+
+  // Report date price: closing price of the report date (or nearest trading day)
+  const reportRow = json.rows.find(r => r.date === json.report_date)
+    || json.rows.reduce((best, r) => {{
+      const diff = Math.abs(new Date(r.date) - new Date(json.report_date));
+      return diff < Math.abs(new Date(best.date) - new Date(json.report_date)) ? r : best;
+    }}, json.rows[0]);
+  const reportPrice = reportRow?.c ?? null;
+
+  // Today price: last available row
+  const todayRow   = [...json.rows].reverse().find(r => r.date <= TODAY_STR);
+  const todayPrice = todayRow?.c ?? null;
+
+  function pct(from, to) {{
+    if (!from || !to) return null;
+    return ((to - from) / from * 100).toFixed(1);
+  }}
+  function cls(v) {{ return v === null ? 'neutral' : parseFloat(v) >= 0 ? 'up' : 'dn'; }}
+  function fmt(v) {{ return v === null ? '—' : (parseFloat(v) >= 0 ? '+' : '') + v + '%'; }}
+  function fmtPx(v) {{ return v === null ? '—' : v.toFixed(2); }}
+
+  let html = '';
+
+  // Always show: report price + today price + today vs report
+  const todayVsReport = pct(reportPrice, todayPrice);
+  html += `
+    <div class="pstat">
+      <span class="pstat-label">Report date close</span>
+      <span class="pstat-value neutral">${{fmtPx(reportPrice)}}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Current price</span>
+      <span class="pstat-value neutral">${{fmtPx(todayPrice)}}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Since report</span>
+      <span class="pstat-value ${{cls(todayVsReport)}}">${{fmt(todayVsReport)}}</span>
+    </div>`;
+
+  // If target price set: show upside from report + from today
+  if (!isNaN(target) && target > 0) {{
+    const uptReport = pct(reportPrice, target);
+    const uptToday  = pct(todayPrice,  target);
+    html += `
+    <div class="pstat" style="border-color:var(--accent)">
+      <span class="pstat-label">Target</span>
+      <span class="pstat-value neutral">${{target.toFixed(2)}}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Upside from report</span>
+      <span class="pstat-value ${{cls(uptReport)}}">${{fmt(uptReport)}}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Upside from today</span>
+      <span class="pstat-value ${{cls(uptToday)}}">${{fmt(uptToday)}}</span>
+    </div>`;
+  }}
+
+  statEl.innerHTML = html;
 }}
 
 function addDays(d,n){{ const r=new Date(d); r.setDate(r.getDate()+n); return r; }}
@@ -1060,7 +1141,7 @@ function makeCard(s,i){{
         <button class="btn-dl" onclick="deleteCard(${{i}})">Delete</button>
       </div>
     </div>
-    <div class="fgrid">
+    <div class="fgrid" style="grid-template-columns:repeat(5,minmax(0,1fr))">
       <div class="field search-wrap">
         <label>Ticker <span class="req">*</span></label>
         <input id="f-ticker-${{i}}" value="${{s.ticker||''}}" autocomplete="off"
@@ -1074,6 +1155,8 @@ function makeCard(s,i){{
         <input id="f-pre-${{i}}" type="number" min="10" max="365" value="${{s.default_pre||60}}"></div>
       <div class="field"><label>Future days (default)</label>
         <input id="f-post-${{i}}" type="number" min="10" max="365" value="${{s.default_post||60}}"></div>
+      <div class="field"><label>Target price <span style="color:var(--sub);font-weight:400">(optional)</span></label>
+        <input id="f-tp-${{i}}" type="number" step="0.01" min="0" placeholder="e.g. 250.00" value="${{s.target_price||''}}"></div>
     </div>
     <div class="field" style="margin-bottom:10px"><label>Label</label>
       <input id="f-label-${{i}}" value="${{s.label||''}}"></div>
@@ -1101,6 +1184,7 @@ function saveCard(i){{
     thesis:       document.getElementById('f-thesis-'+i).value.trim(),
     default_pre:  parseInt(document.getElementById('f-pre-' +i).value)||60,
     default_post: parseInt(document.getElementById('f-post-'+i).value)||60,
+    target_price: parseFloat(document.getElementById('f-tp-'+i).value)||null,
   }};
   save(stocks);
   document.getElementById('mt-'+i).textContent=ticker;
@@ -1196,6 +1280,7 @@ function buildYaml(stocks){{
     out+=`    thesis: "${{esc(s.thesis)}}"\\n`;
     out+=`    default_pre: ${{s.default_pre||60}}\\n`;
     out+=`    default_post: ${{s.default_post||60}}\\n`;
+    if (s.target_price) out+=`    target_price: ${{s.target_price}}\\n`;
     if (s.tags && s.tags.length) out+=`    tags: [${{s.tags.map(t=>'"'+t+'"').join(', ')}}]\\n`;
     if (s.archived) out+=`    archived: true\\n`;
   }});
