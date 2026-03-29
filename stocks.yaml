@@ -12,7 +12,7 @@ stocks:
     thesis: "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line."
     default_pre: 60
     default_post: 60
-  - ticker: C6I.SI
+  - ticker: C6L.SI
     report_date: "2026-02-28"
     label: "Singapore Airlines (SIA)"
     thesis: "Geopolitical risk rises and there are dips in SIA"
