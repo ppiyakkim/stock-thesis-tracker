@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Stock Thesis Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0f14;--panel:#13161e;--panel2:#1a1d27;--border:#252836;
+  --text:#c8cdd8;--sub:#5a6070;--accent:#f5c842;--blue:#4fa3f7;
+  --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+.site-header{
+  padding:13px 22px;border-bottom:1px solid var(--border);background:var(--panel);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.site-title{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.nav{display:flex;gap:4px}
+.nav a{font-family:var(--mono);font-size:10px;padding:4px 11px;border-radius:4px;
+  color:var(--sub);border:1px solid transparent;text-decoration:none;transition:all .15s}
+.nav a:hover{color:var(--text);border-color:var(--border)}
+.nav a.active{color:var(--accent);border-color:var(--accent)}
+
+.tab-bar{display:flex;gap:2px;padding:10px 16px 0;background:var(--panel);
+  border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+  padding:6px 16px 8px;border:none;border-radius:4px 4px 0 0;background:transparent;
+  color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+  transition:color .15s,background .15s}
+.tab:hover{color:var(--text);background:var(--panel2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.content{padding:16px}
+.panel.hidden{display:none}.panel.visible{display:block}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;
+  flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.ch-left{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ticker-badge{font-family:var(--mono);font-size:15px;font-weight:600;color:var(--accent)}
+.label-text{font-size:13px;color:var(--text)}
+.meta-row{display:flex;gap:14px;flex-wrap:wrap}
+.meta-item{font-family:var(--mono);font-size:10px;color:var(--sub);white-space:nowrap}
+.meta-item b{color:var(--text)}
+.updated{color:var(--blue)}
+.embed-toggle-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;
+  border-radius:4px;background:transparent;color:var(--sub);
+  border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.embed-toggle-btn:hover{color:var(--accent);border-color:var(--accent)}
+.embed-toggle-btn.active{color:var(--accent);border-color:var(--accent)}
+.thesis-text{font-size:12px;color:var(--sub);font-style:italic;margin-bottom:12px;
+  padding:8px 12px;border-left:2px solid var(--border);line-height:1.7}
+.ctrl-row{display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  margin-bottom:12px;padding:9px 13px;background:var(--panel);
+  border:1px solid var(--border);border-radius:6px}
+.cg{display:flex;align-items:center;gap:8px}
+.cg label{font-family:var(--mono);font-size:10px;color:var(--sub);white-space:nowrap}
+.cg input[type=range]{width:120px;accent-color:var(--accent)}
+.cv{font-family:var(--mono);font-size:11px;color:var(--accent);min-width:36px}
+.leg-row{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px}
+.leg{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:10px;color:var(--sub)}
+.ld{width:14px;height:3px;border-radius:2px;flex-shrink:0}
+.chart-wrap{border:1px solid var(--border);border-radius:6px 6px 0 0;
+  overflow:hidden;background:var(--panel);height:420px}
+.vol-wrap{border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;
+  overflow:hidden;background:var(--panel);height:90px;margin-bottom:4px}
+.loading{display:flex;align-items:center;justify-content:center;height:100%;
+  font-family:var(--mono);font-size:11px;color:var(--sub)}
+.embed-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px;
+  padding:8px 12px;background:var(--panel);border:1px solid var(--border);border-radius:6px}
+.embed-label{font-family:var(--mono);font-size:10px;color:var(--sub);white-space:nowrap;flex-shrink:0}
+.embed-url{font-family:var(--mono);font-size:10px;color:var(--blue);
+  flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:text;
+  user-select:all}
+.copy-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:4px;
+  background:transparent;color:var(--sub);border:1px solid var(--border);
+  cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.copy-btn:hover{color:var(--text);border-color:var(--text)}
+.copy-btn.copied{color:var(--green);border-color:var(--green)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <span class="site-title">Stock Thesis Tracker</span>
+  <nav class="nav">
+    <a href="index.html" class="active">Dashboard</a>
+    <a href="manage.html">Manage</a>
+  </nav>
+</header>
+<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">AAPL</button><button class="tab" onclick="switchTab(1)" id="tab-1">TSLA</button><button class="tab" onclick="switchTab(2)" id="tab-2">MSFT</button></div>
+<div class="content">
+<div class="panel visible" id="panel-0">
+  <div class="card-header">
+    <div class="ch-left">
+      <span class="ticker-badge">AAPL</span>
+      <span class="label-text">Apple Q1 FY2026 Earnings</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-item">Report&nbsp;<b>2026-02-01</b></span>
+      <span class="meta-item updated" id="updated-0"></span>
+      <button class="embed-toggle-btn" onclick="toggleEmbed(0)" id="embedtoggle-0">Notion embed URL</button>
+    </div>
+  </div>
+  <p class="thesis-text">Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.</p>
+  <div class="embed-bar" id="embedbar-0" style="display:none">
+    <span class="embed-label">Notion embed URL</span>
+    <span class="embed-url" id="embedurl-0"></span>
+    <button class="copy-btn" id="copybtn-0" onclick="copyEmbed(0)">Copy</button>
+  </div>
+  <div class="ctrl-row">
+    <div class="cg">
+      <label>Past days</label>
+      <input type="range" id="sl-pre-0" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-pre-0">60d</span>
+    </div>
+    <div class="cg">
+      <label>Future days</label>
+      <input type="range" id="sl-post-0" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-post-0">60d</span>
+    </div>
+  </div>
+  <div class="leg-row" id="leg-0"></div>
+  <div class="chart-wrap" id="chart-0"></div>
+  <div class="vol-wrap"   id="vol-0"></div>
+</div>
+<div class="panel hidden" id="panel-1">
+  <div class="card-header">
+    <div class="ch-left">
+      <span class="ticker-badge">TSLA</span>
+      <span class="label-text">Tesla Q4 FY2025 Earnings</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-item">Report&nbsp;<b>2026-01-29</b></span>
+      <span class="meta-item updated" id="updated-1"></span>
+      <button class="embed-toggle-btn" onclick="toggleEmbed(1)" id="embedtoggle-1">Notion embed URL</button>
+    </div>
+  </div>
+  <p class="thesis-text">Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.</p>
+  <div class="embed-bar" id="embedbar-1" style="display:none">
+    <span class="embed-label">Notion embed URL</span>
+    <span class="embed-url" id="embedurl-1"></span>
+    <button class="copy-btn" id="copybtn-1" onclick="copyEmbed(1)">Copy</button>
+  </div>
+  <div class="ctrl-row">
+    <div class="cg">
+      <label>Past days</label>
+      <input type="range" id="sl-pre-1" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-pre-1">60d</span>
+    </div>
+    <div class="cg">
+      <label>Future days</label>
+      <input type="range" id="sl-post-1" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-post-1">60d</span>
+    </div>
+  </div>
+  <div class="leg-row" id="leg-1"></div>
+  <div class="chart-wrap" id="chart-1"></div>
+  <div class="vol-wrap"   id="vol-1"></div>
+</div>
+<div class="panel hidden" id="panel-2">
+  <div class="card-header">
+    <div class="ch-left">
+      <span class="ticker-badge">MSFT</span>
+      <span class="label-text">Microsoft Q2 FY2026 Earnings</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-item">Report&nbsp;<b>2026-01-29</b></span>
+      <span class="meta-item updated" id="updated-2"></span>
+      <button class="embed-toggle-btn" onclick="toggleEmbed(2)" id="embedtoggle-2">Notion embed URL</button>
+    </div>
+  </div>
+  <p class="thesis-text">Azure growth acceleration; Copilot monetisation. Long: enterprise AI distribution moat is underpriced.</p>
+  <div class="embed-bar" id="embedbar-2" style="display:none">
+    <span class="embed-label">Notion embed URL</span>
+    <span class="embed-url" id="embedurl-2"></span>
+    <button class="copy-btn" id="copybtn-2" onclick="copyEmbed(2)">Copy</button>
+  </div>
+  <div class="ctrl-row">
+    <div class="cg">
+      <label>Past days</label>
+      <input type="range" id="sl-pre-2" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-pre-2">60d</span>
+    </div>
+    <div class="cg">
+      <label>Future days</label>
+      <input type="range" id="sl-post-2" min="10" max="365" step="5" value="60">
+      <span class="cv" id="cv-post-2">60d</span>
+    </div>
+  </div>
+  <div class="leg-row" id="leg-2"></div>
+  <div class="chart-wrap" id="chart-2"></div>
+  <div class="vol-wrap"   id="vol-2"></div>
+</div></div>
+
+<script>
+const STOCKS    = [{"ticker": "AAPL", "report_date": "2026-02-01", "label": "Apple Q1 FY2026 Earnings", "thesis": "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.", "default_pre": 60, "default_post": 60}, {"ticker": "TSLA", "report_date": "2026-01-29", "label": "Tesla Q4 FY2025 Earnings", "thesis": "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.", "default_pre": 60, "default_post": 60}, {"ticker": "MSFT", "report_date": "2026-01-29", "label": "Microsoft Q2 FY2026 Earnings", "thesis": "Azure growth acceleration; Copilot monetisation. Long: enterprise AI distribution moat is underpriced.", "default_pre": 60, "default_post": 60}];
+const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
+const TODAY_STR = TODAY.toISOString().slice(0,10);
+
+// Cache loaded JSON — fetched once per ticker, reused for all slider changes
+const jsonCache = {};
+const curPre    = {};
+const curPost   = {};
+
+STOCKS.forEach((s,i) => {
+  curPre[i]  = s.default_pre  || 60;
+  curPost[i] = s.default_post || 60;
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const debounceTimers = {};
+
+  STOCKS.forEach((s,i) => {
+    function onSliderChange() {
+      curPre[i]  = parseInt(document.getElementById('sl-pre-' +i).value);
+      curPost[i] = parseInt(document.getElementById('sl-post-'+i).value);
+      document.getElementById('cv-pre-' +i).textContent = curPre[i]  + 'd';
+      document.getElementById('cv-post-'+i).textContent = curPost[i] + 'd';
+      clearTimeout(debounceTimers[i]);
+      debounceTimers[i] = setTimeout(() => redraw(i), 120);
+    }
+    document.getElementById('sl-pre-' +i).addEventListener('input', onSliderChange);
+    document.getElementById('sl-post-'+i).addEventListener('input', onSliderChange);
+  });
+
+  // ── URL param handling ───────────────────────────────────────────────────
+  const params   = new URLSearchParams(location.search);
+  const tickerParam = (params.get('ticker') || '').toUpperCase();
+  const embedMode   = params.get('embed') === '1';
+
+  // embed=1 → hide header, tab-bar, embed-bar; show only the chart panel
+  if (embedMode) {
+    document.querySelector('.site-header').style.display = 'none';
+    document.querySelector('.tab-bar').style.display     = 'none';
+    document.querySelectorAll('.embed-bar').forEach(el => el.style.display = 'none');
+  }
+
+  // Populate embed URLs for each panel
+  const baseUrl = location.origin + location.pathname;
+  STOCKS.forEach((s,i) => {
+    const url = `${baseUrl}?ticker=${s.ticker}&embed=1`;
+    const el  = document.getElementById('embedurl-'+i);
+    if (el) el.textContent = url;
+  });
+
+  // Pick initial tab
+  let startTab = 0;
+  if (tickerParam) {
+    const idx = STOCKS.findIndex(s => s.ticker.toUpperCase() === tickerParam);
+    if (idx >= 0) startTab = idx;
+  }
+  switchTab(startTab);
+});
+
+function copyEmbed(i) {
+  const url = document.getElementById('embedurl-'+i).textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copybtn-'+i);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+  });
+}
+
+function toggleEmbed(i) {
+  const bar = document.getElementById('embedbar-'+i);
+  const btn = document.getElementById('embedtoggle-'+i);
+  const visible = bar.style.display !== 'none';
+  bar.style.display = visible ? 'none' : 'flex';
+  btn.classList.toggle('active', !visible);
+}
+
+function switchTab(i) {
+  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
+  document.querySelectorAll('.panel').forEach((p,j) => {
+    p.classList.toggle('visible', i===j);
+    p.classList.toggle('hidden',  i!==j);
+  });
+  // Update URL param without page reload
+  const params = new URLSearchParams(location.search);
+  params.set('ticker', STOCKS[i].ticker);
+  const newUrl = location.pathname + '?' + params.toString();
+  history.replaceState(null, '', newUrl);
+
+  if (!jsonCache[STOCKS[i].ticker]) renderChart(i);
+  else redraw(i);
+}
+
+async function renderChart(i) {
+  const s = STOCKS[i];
+  document.getElementById('chart-'+i).innerHTML = '<div class="loading">Loading…</div>';
+  document.getElementById('vol-'  +i).innerHTML = '';
+
+  if (!jsonCache[s.ticker]) {
+    try {
+      const r = await fetch('data/' + s.ticker + '.json');
+      if (!r.ok) throw new Error(r.status);
+      jsonCache[s.ticker] = await r.json();
+    } catch(e) {
+      document.getElementById('chart-'+i).innerHTML =
+        `<div class="loading" style="color:var(--red)">
+          Failed to load ${s.ticker}.json — run generate.py first</div>`;
+      return;
+    }
+  }
+  redraw(i);
+}
+
+function redraw(i) {
+  const s    = STOCKS[i];
+  const json = jsonCache[s.ticker];
+  if (!json) return;
+
+  const pre  = curPre[i];
+  const post = curPost[i];
+
+  const reportDate  = new Date(json.report_date); reportDate.setHours(0,0,0,0);
+  const windowStart = addDays(reportDate, -pre);
+  const windowEnd   = addDays(reportDate,  post);
+  const showToday   = TODAY <= windowEnd;
+
+  // ── TRADING DAYS ONLY ───────────────────────────────────────────────────
+  // Build date list from actual JSON rows (only real trading days).
+  // For future blank space, add synthetic labels up to windowEnd.
+  const tradingDays = new Set(json.rows.map(r => r.date));
+
+  // Past + present: actual trading days within window
+  const pastDates = json.rows
+    .map(r => r.date)
+    .filter(dt => dt >= fmtD(windowStart) && dt <= TODAY_STR && dt <= fmtD(windowEnd));
+
+  // Ensure report_date's nearest trading day is always in the list
+  // (it may be just outside the window edge due to rounding)
+  const rdStr = json.report_date;
+  const rdInList = pastDates.includes(rdStr) ||
+    json.rows.some(r => pastDates.includes(r.date) && Math.abs(
+      (new Date(r.date) - new Date(rdStr)) / 86400000) <= 5);
+  if (!rdInList) {
+    // Find the closest trading day to report_date in the JSON and prepend it
+    const rd = new Date(rdStr); rd.setHours(0,0,0,0);
+    for (let offset = 0; offset <= 5; offset++) {
+      const next = fmtD(addDays(rd,  offset));
+      const prev = fmtD(addDays(rd, -offset));
+      const rowNext = json.rows.find(r => r.date === next);
+      const rowPrev = json.rows.find(r => r.date === prev);
+      if (rowNext && !pastDates.includes(next)) { pastDates.unshift(next); break; }
+      if (rowPrev && !pastDates.includes(prev)) { pastDates.unshift(prev); break; }
+    }
+  }
+
+  // Future: synthetic weekday labels from tomorrow to windowEnd (for blank space)
+  const futureDates = [];
+  if (showToday) {
+    const cursor = addDays(TODAY, 1);
+    while (cursor <= windowEnd) {
+      const d = cursor.getDay();
+      if (d !== 0 && d !== 6) futureDates.push(fmtD(cursor)); // skip Sat/Sun
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  }
+
+  const allDates   = [...pastDates, ...futureDates];
+  if (!allDates.length) return;
+
+  const rowMap = {};
+  json.rows.forEach(r => rowMap[r.date] = r);
+
+  const candleRows = allDates.map(dt => {
+    const r = rowMap[dt];
+    return (r && dt <= TODAY_STR) ? r : null;
+  });
+  const bull = candleRows.map(r => r ? r.c >= r.o : true);
+
+  const ma20 = allDates.map(dt => {
+    const r = rowMap[dt];
+    return (r && r.ma20 != null) ? r.ma20 : null;
+  });
+  const ma50 = allDates.map(dt => {
+    const r = rowMap[dt];
+    return (r && r.ma50 != null) ? r.ma50 : null;
+  });
+
+  // Dynamic Y range
+  const realRows  = candleRows.filter(Boolean);
+  if (!realRows.length) return;
+  const maVals    = [...ma20, ...ma50].filter(v => v != null);
+  const allPrices = [...realRows.flatMap(r => [r.h, r.l]), ...maVals];
+  const priceMin  = Math.min(...allPrices);
+  const priceMax  = Math.max(...allPrices);
+  const pad       = (priceMax - priceMin) * 0.06;
+  const yMin      = +(priceMin - pad).toFixed(2);
+  const yMax      = +(priceMax + pad).toFixed(2);
+
+  // Vertical line positions — use category index (required for category xaxis)
+  // report_date may fall on a weekend/holiday → find nearest trading day in allDates
+  let riIdx = allDates.indexOf(json.report_date);
+  if (riIdx === -1) {
+    // Try next trading day first, then previous
+    const rd = new Date(json.report_date); rd.setHours(0,0,0,0);
+    for (let offset = 1; offset <= 5; offset++) {
+      const next = fmtD(addDays(rd,  offset));
+      const prev = fmtD(addDays(rd, -offset));
+      if (allDates.indexOf(next) >= 0) { riIdx = allDates.indexOf(next); break; }
+      if (allDates.indexOf(prev) >= 0) { riIdx = allDates.indexOf(prev); break; }
+    }
+  }
+  const tiIdx = showToday
+    ? allDates.reduce((best,dt,j) => dt <= TODAY_STR ? j : best, -1)
+    : -1;
+
+  // Legend
+  document.getElementById('leg-'+i).innerHTML = `
+    <span class="leg"><span class="ld" style="background:#00e5a0"></span>Bull</span>
+    <span class="leg"><span class="ld" style="background:#ff4d6a"></span>Bear</span>
+    <span class="leg"><span class="ld" style="background:#4fa3f7"></span>MA 20</span>
+    <span class="leg"><span class="ld" style="background:#f77f4f"></span>MA 50</span>
+    <span class="leg"><span class="ld" style="background:#f5c842"></span>Report date</span>
+    ${showToday
+      ? '<span class="leg"><span class="ld" style="background:#4fa3f7;opacity:.5"></span>Today</span>'
+      : ''}`;
+
+  // category xaxis = no weekend/holiday gaps
+  const axisStyle = {
+    type:'category',
+    gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
+    tickfont:{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" },
+    tickangle: 0,
+    nticks: 10,
+  };
+
+  // Shapes/annotations use category index numbers for category xaxis
+  const shapes=[], annotations=[];
+
+  if (riIdx >= 0) {
+    shapes.push({ type:'line',
+      x0:riIdx, x1:riIdx, y0:0, y1:1, yref:'paper', xref:'x',
+      line:{ color:'#f5c842', width:1.8, dash:'dash' } });
+    annotations.push({ x:riIdx, y:1, yref:'paper', xref:'x',
+      text:'Report', showarrow:false, xanchor:'left', yanchor:'top',
+      font:{ color:'#f5c842', size:10, family:"'IBM Plex Mono',monospace" },
+      bgcolor:'rgba(13,15,20,.85)', bordercolor:'#f5c842', borderwidth:1 });
+  }
+
+  if (showToday && tiIdx >= 0) {
+    shapes.push({ type:'line',
+      x0:tiIdx, x1:tiIdx, y0:0, y1:1, yref:'paper', xref:'x',
+      line:{ color:'#4fa3f7', width:1.2, dash:'dot' } });
+    annotations.push({ x:tiIdx, y:1, yref:'paper', xref:'x',
+      text:'Today', showarrow:false, xanchor:'right', yanchor:'top',
+      font:{ color:'#4fa3f7', size:10, family:"'IBM Plex Mono',monospace" },
+      bgcolor:'rgba(13,15,20,.85)', bordercolor:'#4fa3f7', borderwidth:1 });
+  }
+
+  const layout = {
+    paper_bgcolor:'#13161e', plot_bgcolor:'#13161e',
+    font:{ color:'#c8cdd8', family:"'IBM Plex Mono',monospace" },
+    xaxis:{ ...axisStyle, rangeslider:{ visible:false } },
+    yaxis:{ gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
+      tickfont:{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" },
+      side:'right', range:[yMin,yMax],
+      title:{ text:'Price', font:{ size:10, color:'#5a6070' } } },
+    shapes, annotations, showlegend:false,
+    margin:{ l:10, r:65, t:16, b:40 },
+    hovermode:'x unified',
+    hoverlabel:{ bgcolor:'#1a1d27', bordercolor:'#252836',
+      font:{ color:'#c8cdd8', size:11, family:"'IBM Plex Mono',monospace" } },
+  };
+
+  const volAxisStyle = {
+    type:'category',
+    gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
+    tickfont:{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" },
+  };
+
+  const volLayout = {
+    paper_bgcolor:'#13161e', plot_bgcolor:'#13161e',
+    font:{ color:'#c8cdd8', family:"'IBM Plex Mono',monospace" },
+    xaxis:{ ...volAxisStyle, rangeslider:{ visible:false } },
+    yaxis:{ gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
+      tickfont:{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" },
+      side:'right', tickformat:'.2s',
+      title:{ text:'Vol', font:{ size:10, color:'#5a6070' } } },
+    shapes: shapes.map(sh => ({...sh})),
+    showlegend:false, margin:{ l:10, r:65, t:4, b:40 },
+    hovermode:'x unified',
+    hoverlabel:{ bgcolor:'#1a1d27', bordercolor:'#252836',
+      font:{ color:'#c8cdd8', size:11 } },
+  };
+
+  const cfg = { responsive:true, displayModeBar:false };
+
+  document.getElementById('chart-'+i).innerHTML = '';
+  document.getElementById('vol-'  +i).innerHTML = '';
+
+  Plotly.newPlot('chart-'+i,
+    [{ type:'candlestick', x:allDates,
+       open:  candleRows.map(r => r?.o ?? null),
+       high:  candleRows.map(r => r?.h ?? null),
+       low:   candleRows.map(r => r?.l ?? null),
+       close: candleRows.map(r => r?.c ?? null),
+       increasing:{ line:{ color:'#00e5a0', width:1 }, fillcolor:'#00e5a0' },
+       decreasing:{ line:{ color:'#ff4d6a', width:1 }, fillcolor:'#ff4d6a' },
+       whiskerwidth:0.5, name:s.ticker },
+     { type:'scatter', x:allDates, y:ma20, mode:'lines', name:'MA 20',
+       line:{ color:'#4fa3f7', width:1.3, dash:'dot' }, opacity:0.85, connectgaps:false },
+     { type:'scatter', x:allDates, y:ma50, mode:'lines', name:'MA 50',
+       line:{ color:'#f77f4f', width:1.3, dash:'dot' }, opacity:0.85, connectgaps:false }],
+    layout, cfg);
+
+  Plotly.newPlot('vol-'+i,
+    [{ type:'bar', x:allDates, y:candleRows.map(r => r?.v ?? null),
+       marker:{ color:bull.map(b => b ? 'rgba(0,229,160,.22)' : 'rgba(255,77,106,.22)'),
+                 line:{ width:0 } },
+       showlegend:false }],
+    volLayout, cfg);
+
+  const upEl = document.getElementById('updated-'+i);
+  if (upEl) upEl.textContent = 'Updated ' + json.generated;
+}
+
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function fmtD(d){ return d.toISOString().slice(0,10); }
+</script>
+</body>
+</html>
