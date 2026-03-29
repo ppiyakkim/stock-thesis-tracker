@@ -1,20 +1,68 @@
 # stocks.yaml — managed via /manage
 stocks:
-  - ticker: AAPL
-    report_date: "2026-02-01"
-    label: "Apple Q1 FY2026 Earnings"
-    thesis: "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus."
-    default_pre: 60
-    default_post: 60
-  - ticker: TSLA
-    report_date: "2026-01-29"
-    label: "Tesla Q4 FY2025 Earnings"
-    thesis: "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line."
-    default_pre: 60
-    default_post: 60
   - ticker: C6L.SI
     report_date: "2026-02-28"
     label: "Singapore Airlines (SIA)"
-    thesis: "Geopolitical risk rises and there are dips in SIA"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: 0293.HK
+    report_date: "2026-02-28"
+    label: "Cathay Pacific Airways"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: IAL.L
+    report_date: "2026-02-28"
+    label: "International Consolidated Airlines Group"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: RYA.IR
+    report_date: "2026-02-28"
+    label: "Ryanair Holdings plc"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: AAL
+    report_date: "2026-02-28"
+    label: "American Airlines Group, Inc."
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: 012450.KS
+    report_date: "2026-02-28"
+    label: "Hanwha Aerospace"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: RR.L
+    report_date: "2026-02-28"
+    label: "Rolls-Royce Holdings plc"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: AIR.PA
+    report_date: "2026-02-28"
+    label: "Airbus SE"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: BA.L
+    report_date: "2026-02-28"
+    label: "BAE Systems plc"
+    thesis: "Related to Geopolitical risks"
+    default_pre: 100
+    default_post: 60
+  - ticker: D05.SI
+    report_date: "2026-02-28"
+    label: "DBS Group Holdings Ltd"
+    thesis: "Regional bank performance"
+    default_pre: 100
+    default_post: 60
+  - ticker: IBN.BA
+    report_date: "2026-02-28"
+    label: "ICICI Bank Limited"
+    thesis: "Regional bank performance"
     default_pre: 100
     default_post: 60
