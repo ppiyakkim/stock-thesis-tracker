@@ -749,21 +749,18 @@ let activeMonth = null;
 
 function switchMonth(month) {
   activeMonth = month;
-  // Sync dropdown value
   const sel = document.getElementById('month-select');
   if (sel) sel.value = month;
 
-  // Show only tabs belonging to this month
-  const allTabs = document.querySelectorAll('.tab');
   let firstVisible = -1;
-  allTabs.forEach((t, idx) => {
+  document.querySelectorAll('.tab').forEach(t => {
     const inMonth = t.dataset.month === month;
     const inTag   = !t.classList.contains('tag-hidden');
     t.classList.toggle('month-hidden', !inMonth);
-    if (inMonth && inTag && firstVisible === -1) firstVisible = idx;
+    if (inMonth && inTag && firstVisible === -1)
+      firstVisible = parseInt(t.id.replace('tab-',''));
   });
 
-  // Show/hide month headers
   document.querySelectorAll('.month-header').forEach(h => {
     h.style.display = h.dataset.month === month ? '' : 'none';
   });
@@ -832,13 +829,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Pick initial tab from URL or default
-  let startTab = 0;
+  // Pick initial tab from URL or first tab in active month
+  let startTab = -1;
   if (tickerParam) {
     const idx = STOCKS.findIndex(s => s.ticker.toUpperCase() === tickerParam);
     if (idx >= 0) startTab = idx;
   }
-  switchTab(startTab);
+  if (startTab < 0) {
+    const firstTab = document.querySelector('.tab:not(.month-hidden):not(.tag-hidden)');
+    if (firstTab) startTab = parseInt(firstTab.id.replace('tab-',''));
+  }
+  if (startTab >= 0) switchTab(startTab);
 });
 
 function copyEmbed(i) {
@@ -863,50 +864,67 @@ let activeTag = null;
 
 function filterTag(tag) {
   activeTag = tag;
-  // Update filter button states
   document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('on'));
-  const btnId = tag ? 'tagbtn-'+tag : 'tagbtn-all';
-  const btn = document.getElementById(btnId);
+  const btn = document.getElementById(tag ? 'tagbtn-'+tag : 'tagbtn-all');
   if (btn) btn.classList.add('on');
 
-  // Show/hide tabs and month headers based on tag
-  const tabs    = document.querySelectorAll('.tab');
-  const panels  = document.querySelectorAll('.panel');
-  const headers = document.querySelectorAll('.month-header');
-
-  // Determine which panel indices are visible
   const visibleMonths = new Set();
-  panels.forEach((p, i) => {
+  let needSwitch = true;
+
+  document.querySelectorAll('.panel').forEach(p => {
+    const i    = parseInt(p.id.replace('panel-',''));
     const tags = (p.dataset.tags || '').split(' ').filter(Boolean);
     const show = !tag || tags.includes(tag);
-    tabs[i] && tabs[i].classList.toggle('tag-hidden', !show);
-    if (!show && p.classList.contains('visible')) {
-      // Current tab is hidden — find first visible tab
-      const firstVisible = [...tabs].findIndex(t => !t.classList.contains('tag-hidden'));
-      if (firstVisible >= 0) switchTab(firstVisible);
+    const tab  = document.getElementById('tab-'+i);
+    if (tab) tab.classList.toggle('tag-hidden', !show);
+    if (show) {
+      visibleMonths.add(p.dataset.month);
+      if (needSwitch && p.classList.contains('visible')) needSwitch = false;
     }
-    if (show) visibleMonths.add(p.dataset.month);
+    if (!show && p.classList.contains('visible')) {
+      // current panel is being hidden — switch to first visible
+    }
   });
 
-  // Show/hide month headers
-  headers.forEach(h => {
+  // If current tab got hidden, switch to first visible
+  if (needSwitch || document.querySelector('.panel.visible .tag-hidden') !== null) {
+    const firstVisible = document.querySelector('.tab:not(.tag-hidden):not(.month-hidden)');
+    if (firstVisible) {
+      const idx = parseInt(firstVisible.id.replace('tab-',''));
+      switchTab(idx);
+    }
+  }
+  // Also check if current visible panel is now tag-hidden
+  const curPanel = document.querySelector('.panel.visible');
+  if (curPanel) {
+    const curI   = parseInt(curPanel.id.replace('panel-',''));
+    const curTab = document.getElementById('tab-'+curI);
+    if (curTab && curTab.classList.contains('tag-hidden')) {
+      const firstVisible = document.querySelector('.tab:not(.tag-hidden):not(.month-hidden)');
+      if (firstVisible) switchTab(parseInt(firstVisible.id.replace('tab-','')));
+    }
+  }
+
+  document.querySelectorAll('.month-header').forEach(h => {
     h.style.display = (!tag || visibleMonths.has(h.dataset.month)) ? '' : 'none';
   });
 }
 
 function switchTab(i) {
-  document.querySelectorAll('.tab').forEach((t,j) => t.classList.toggle('active', i===j));
-  document.querySelectorAll('.panel').forEach((p,j) => {
-    p.classList.toggle('visible', i===j);
-    p.classList.toggle('hidden',  i!==j);
+  // Use id-based lookup — immune to DOM order
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.id === 'tab-'+i);
+  });
+  document.querySelectorAll('.panel').forEach(p => {
+    p.classList.toggle('visible', p.id === 'panel-'+i);
+    p.classList.toggle('hidden',  p.id !== 'panel-'+i);
   });
   // Update URL param without page reload
   const params = new URLSearchParams(location.search);
-  params.set('ticker', STOCKS[i].ticker);
-  const newUrl = location.pathname + '?' + params.toString();
-  history.replaceState(null, '', newUrl);
+  if (STOCKS[i]) params.set('ticker', STOCKS[i].ticker);
+  history.replaceState(null, '', location.pathname + '?' + params.toString());
 
-  if (!jsonCache[STOCKS[i].ticker]) renderChart(i);
+  if (!jsonCache[STOCKS[i]?.ticker]) renderChart(i);
   else redraw(i);
 }
 
