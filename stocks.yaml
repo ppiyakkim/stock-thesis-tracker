@@ -1,7 +1,7 @@
 # stocks.yaml — managed via /manage
 stocks:
   - ticker: C6L.SI
-    report_date: "2026-03-02"
+    report_date: "2026-02-28"
     label: "Singapore Airlines (SIA)"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
@@ -57,11 +57,12 @@ stocks:
     default_post: 60
     tags: ["defense", "aviation", "europe"]
   - ticker: BA.L
-    report_date: "2026-02-28"
+    report_date: "2026-03-18"
     label: "BAE Systems plc"
-    thesis: "Related to Geopolitical risks"
+    thesis: "1. Default Recipient of Europe's Defence Build-Up 2. Compounding Financials with Visibility Into the 2030s 3. Multi-Region Revenue Insulates Against Any Budget Cycle  Part of LBS Group Stock Pitch competition submission"
     default_pre: 100
     default_post: 60
+    target_price: 3055
     tags: ["uk", "defense"]
   - ticker: D05.SI
     report_date: "2026-02-28"
