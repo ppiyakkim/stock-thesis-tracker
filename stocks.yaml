@@ -1,0 +1,25 @@
+# stocks.yaml
+# Edit via manage.html UI or directly here.
+# GitHub Actions reads this file daily to regenerate charts.
+
+stocks:
+  - ticker: AAPL
+    report_date: "2026-02-01"
+    label: "Apple Q1 FY2026 Earnings"
+    thesis: "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus."
+    default_pre: 60
+    default_post: 60
+
+  - ticker: TSLA
+    report_date: "2026-01-29"
+    label: "Tesla Q4 FY2025 Earnings"
+    thesis: "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line."
+    default_pre: 60
+    default_post: 60
+
+  - ticker: MSFT
+    report_date: "2026-01-29"
+    label: "Microsoft Q2 FY2026 Earnings"
+    thesis: "Azure growth acceleration; Copilot monetisation. Long: enterprise AI distribution moat is underpriced."
+    default_pre: 60
+    default_post: 60
