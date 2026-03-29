@@ -122,20 +122,51 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 # ── index.html ────────────────────────────────────────────────────────────────
 
 def build_index(stocks: list) -> str:
-    stocks_json = json.dumps(stocks, ensure_ascii=False)
+    # Separate active vs archived
+    active   = [s for s in stocks if not s.get("archived")]
+    archived = [s for s in stocks if s.get("archived")]
 
+    # Build global index mapping (original position in full list)
+    all_stocks = active + archived
+    stocks_json = json.dumps(all_stocks, ensure_ascii=False)
+
+    # Group active stocks by YYYY-MM
+    from collections import defaultdict
+    months = defaultdict(list)
+    for i, s in enumerate(active):
+        month = s["report_date"][:7]  # "2026-02"
+        months[month].append((i, s))
+
+    # Sort months descending
+    sorted_months = sorted(months.keys(), reverse=True)
+
+    # Build tab bar (flat, one tab per active stock)
     tabs = "".join(
         f'<button class="tab{"  active" if i == 0 else ""}" '
         f'onclick="switchTab({i})" id="tab-{i}">{s["ticker"]}</button>'
-        for i, s in enumerate(stocks)
+        for i, s in enumerate(active)
     )
 
+    # Build panels with month section headers
     panels = ""
-    for i, s in enumerate(stocks):
-        pre  = s.get("default_pre",  60)
-        post = s.get("default_post", 60)
+    prev_month = None
+    for i, s in enumerate(active):
+        month = s["report_date"][:7]
+        pre   = s.get("default_pre",  60)
+        post  = s.get("default_post", 60)
+        tags  = s.get("tags", [])
+        tags_str = " ".join(tags)  # for data attribute
+        tags_html = "".join(f'<span class="tag-pill">{t}</span>' for t in tags) if tags else ""
+
+        # Month header
+        if month != prev_month:
+            from datetime import datetime as _dt
+            label = _dt.strptime(month, "%Y-%m").strftime("%B %Y")
+            panels += f'<div class="month-header" data-month="{month}">{label}</div>'
+            prev_month = month
+
         panels += f"""
-<div class="panel {'visible' if i == 0 else 'hidden'}" id="panel-{i}">
+<div class="panel {'visible' if i == 0 else 'hidden'}" id="panel-{i}" data-month="{month}" data-tags="{tags_str}">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">{s["ticker"]}</span>
@@ -147,6 +178,7 @@ def build_index(stocks: list) -> str:
       <button class="embed-toggle-btn" onclick="toggleEmbed({i})" id="embedtoggle-{i}">Notion embed URL</button>
     </div>
   </div>
+  {'<div class="tag-row">' + tags_html + '</div>' if tags_html else ""}
   {'<p class="thesis-text">' + s["thesis"] + '</p>' if s.get("thesis") else ""}
   <div class="embed-bar" id="embedbar-{i}" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -170,6 +202,32 @@ def build_index(stocks: list) -> str:
   <div class="vol-wrap"   id="vol-{i}"></div>
 </div>"""
 
+    # Collect all unique tags across active stocks
+    all_tags = sorted({t for s in active for t in s.get("tags", [])})
+    tag_filter_html = ""
+    if all_tags:
+        btns = "".join(
+            f'<button class="tag-filter-btn" onclick="filterTag(\'{t}\')" id="tagbtn-{t}">{t}</button>'
+            for t in all_tags
+        )
+        tag_filter_html = f"""
+<div class="tag-filter-bar">
+  <span class="tag-filter-label">Filter</span>
+  <button class="tag-filter-btn on" onclick="filterTag(null)" id="tagbtn-all">All</button>
+  {btns}
+</div>"""
+    archived_html = ""
+    if archived:
+        archived_html = '<div class="archive-section"><div class="archive-header">Archived</div>'
+        for s in archived:
+            archived_html += f"""
+<div class="archive-card">
+  <span class="archive-ticker">{s["ticker"]}</span>
+  <span class="archive-label">{s.get("label","")}</span>
+  <span class="archive-date">{s["report_date"]}</span>
+</div>"""
+        archived_html += "</div>"
+
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -182,13 +240,14 @@ def build_index(stocks: list) -> str:
 <style>
 {COMMON_CSS}
 .tab-bar{{display:flex;gap:2px;padding:10px 16px 0;background:var(--panel);
-  border-bottom:1px solid var(--border);overflow-x:auto}}
+  border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap}}
 .tab{{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
   padding:6px 16px 8px;border:none;border-radius:4px 4px 0 0;background:transparent;
   color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
   transition:color .15s,background .15s}}
 .tab:hover{{color:var(--text);background:var(--panel2)}}
 .tab.active{{color:var(--accent);border-bottom-color:var(--accent)}}
+.tab.tag-hidden{{display:none}}
 .content{{padding:16px}}
 .panel.hidden{{display:none}}.panel.visible{{display:block}}
 .card-header{{display:flex;justify-content:space-between;align-items:flex-start;
@@ -234,6 +293,32 @@ def build_index(stocks: list) -> str:
   cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}}
 .copy-btn:hover{{color:var(--text);border-color:var(--text)}}
 .copy-btn.copied{{color:var(--green);border-color:var(--green)}}
+.month-header{{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--sub);
+  padding:10px 0 6px;border-bottom:1px solid var(--border);
+  margin-bottom:4px;margin-top:16px}}
+.month-header:first-child{{margin-top:0}}
+.archive-section{{margin-top:28px;border-top:1px solid var(--border);padding-top:16px}}
+.archive-header{{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}}
+.archive-card{{display:flex;align-items:center;gap:12px;padding:8px 12px;
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  margin-bottom:6px;opacity:0.55}}
+.archive-ticker{{font-family:var(--mono);font-size:12px;font-weight:600;
+  color:var(--sub);min-width:80px}}
+.archive-label{{font-size:12px;color:var(--sub);flex:1}}
+.archive-date{{font-family:var(--mono);font-size:10px;color:var(--sub)}}
+.tag-row{{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}}
+.tag-pill{{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;
+  background:var(--panel2);color:var(--sub);border:1px solid var(--border)}}
+.tag-filter-bar{{padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}}
+.tag-filter-label{{font-family:var(--mono);font-size:10px;color:var(--sub);white-space:nowrap}}
+.tag-filter-btn{{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;color:var(--sub);
+  cursor:pointer;transition:all .15s;white-space:nowrap}}
+.tag-filter-btn:hover{{color:var(--text);border-color:var(--text)}}
+.tag-filter-btn.on{{background:var(--accent);color:var(--bg);border-color:var(--accent)}}
 </style>
 </head>
 <body>
@@ -245,7 +330,11 @@ def build_index(stocks: list) -> str:
   </nav>
 </header>
 <div class="tab-bar">{tabs}</div>
-<div class="content">{panels}</div>
+{tag_filter_html}
+<div class="content">
+{panels}
+{archived_html}
+</div>
 
 <script>
 const STOCKS    = {stocks_json};
@@ -323,6 +412,41 @@ function toggleEmbed(i) {{
   const visible = bar.style.display !== 'none';
   bar.style.display = visible ? 'none' : 'flex';
   btn.classList.toggle('active', !visible);
+}}
+
+let activeTag = null;
+
+function filterTag(tag) {{
+  activeTag = tag;
+  // Update filter button states
+  document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('on'));
+  const btnId = tag ? 'tagbtn-'+tag : 'tagbtn-all';
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('on');
+
+  // Show/hide tabs and month headers based on tag
+  const tabs    = document.querySelectorAll('.tab');
+  const panels  = document.querySelectorAll('.panel');
+  const headers = document.querySelectorAll('.month-header');
+
+  // Determine which panel indices are visible
+  const visibleMonths = new Set();
+  panels.forEach((p, i) => {{
+    const tags = (p.dataset.tags || '').split(' ').filter(Boolean);
+    const show = !tag || tags.includes(tag);
+    tabs[i] && tabs[i].classList.toggle('tag-hidden', !show);
+    if (!show && p.classList.contains('visible')) {{
+      // Current tab is hidden — find first visible tab
+      const firstVisible = [...tabs].findIndex(t => !t.classList.contains('tag-hidden'));
+      if (firstVisible >= 0) switchTab(firstVisible);
+    }}
+    if (show) visibleMonths.add(p.dataset.month);
+  }});
+
+  // Show/hide month headers
+  headers.forEach(h => {{
+    h.style.display = (!tag || visibleMonths.has(h.dataset.month)) ? '' : 'none';
+  }});
 }}
 
 function switchTab(i) {{
@@ -613,11 +737,15 @@ button{{font-family:var(--mono);font-size:10px;padding:4px 11px;border-radius:4p
 .btn-sv:hover{{background:var(--green);color:var(--bg)}}
 .btn-dl{{color:var(--red);border-color:var(--red)}}
 .btn-dl:hover{{background:var(--red);color:#fff}}
+.btn-arch{{color:var(--sub);border-color:var(--sub)}}
+.btn-arch:hover{{color:var(--text);border-color:var(--text)}}
 .btn-add{{color:var(--accent);border-color:var(--accent);margin-bottom:14px}}
 .btn-add:hover{{background:var(--accent);color:var(--bg)}}
 .btn-pub{{font-size:12px;padding:7px 18px;background:var(--blue);
   color:var(--bg);border-color:var(--blue)}}
 .btn-pub:hover{{opacity:.85}}
+.req{{color:var(--red);margin-left:2px}}
+.archived-card{{opacity:0.55}}
 .fgrid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px}}
 .field label{{display:block;font-family:var(--mono);font-size:9px;color:var(--sub);
   margin-bottom:3px;letter-spacing:.05em;text-transform:uppercase}}
@@ -709,9 +837,49 @@ function save(s){{ localStorage.setItem(LS_STOCKS, JSON.stringify(s)); }}
 
 function render(){{
   const stocks = load();
-  document.getElementById('stock-list').innerHTML = '';
-  stocks.forEach((s,i) =>
-    document.getElementById('stock-list').appendChild(makeCard(s,i)));
+  const list   = document.getElementById('stock-list');
+  list.innerHTML = '';
+
+  const active   = stocks.filter(s => !s.archived);
+  const archived = stocks.filter(s =>  s.archived);
+
+  // Group active by month
+  const months = {{}};
+  active.forEach((s,idx) => {{
+    const realIdx = stocks.indexOf(s);
+    const m = (s.report_date||'').slice(0,7) || 'No date';
+    if (!months[m]) months[m] = [];
+    months[m].push([realIdx, s]);
+  }});
+
+  // Sort months descending
+  Object.keys(months).sort().reverse().forEach(m => {{
+    const mLabel = m === 'No date' ? 'No date' :
+      new Date(m+'-01').toLocaleDateString('en', {{year:'numeric',month:'long'}});
+    const hdr = document.createElement('div');
+    hdr.style.cssText='font-family:var(--font-mono,monospace);font-size:10px;font-weight:600;'
+      +'letter-spacing:.1em;text-transform:uppercase;color:var(--sub);'
+      +'padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;margin-top:14px';
+    hdr.textContent = mLabel;
+    list.appendChild(hdr);
+    months[m].forEach(([realIdx, s]) => list.appendChild(makeCard(s, realIdx)));
+  }});
+
+  // Archived section
+  if (archived.length) {{
+    const ahdr = document.createElement('div');
+    ahdr.style.cssText='font-family:var(--font-mono,monospace);font-size:10px;font-weight:600;'
+      +'letter-spacing:.1em;text-transform:uppercase;color:var(--sub);'
+      +'padding:10px 0 6px;border-top:1px solid var(--border);'
+      +'border-bottom:1px solid var(--border);margin:20px 0 8px';
+    ahdr.textContent = 'Archived';
+    list.appendChild(ahdr);
+    archived.forEach(s => {{
+      const realIdx = stocks.indexOf(s);
+      list.appendChild(makeCard(s, realIdx));
+    }});
+  }}
+
   const gh = JSON.parse(localStorage.getItem(LS_GH)||'{{}}');
   if (gh.owner) document.getElementById('gh-owner').value = gh.owner;
   if (gh.repo)  document.getElementById('gh-repo').value  = gh.repo;
@@ -719,25 +887,26 @@ function render(){{
 
 function makeCard(s,i){{
   const div = document.createElement('div');
-  div.className='stock-card'; div.id='card-'+i;
+  div.className='stock-card'+(s.archived?' archived-card':''); div.id='card-'+i;
   div.innerHTML=`
     <div class="sch">
-      <span class="sticker" id="mt-${{i}}">${{s.ticker}}</span>
+      <span class="sticker" id="mt-${{i}}">${{s.ticker}}${{s.archived?' <span style="font-size:9px;color:var(--sub);font-weight:400">ARCHIVED</span>':''}}</span>
       <div class="btn-g">
         <button class="btn-sv" onclick="saveCard(${{i}})">Save</button>
         <span class="saved-ok" id="sok-${{i}}">✓ saved</span>
+        <button class="btn-arch" onclick="archiveCard(${{i}})">${{s.archived?'Unarchive':'Archive'}}</button>
         <button class="btn-dl" onclick="deleteCard(${{i}})">Delete</button>
       </div>
     </div>
     <div class="fgrid">
       <div class="field search-wrap">
-        <label>Ticker</label>
+        <label>Ticker <span class="req">*</span></label>
         <input id="f-ticker-${{i}}" value="${{s.ticker||''}}" autocomplete="off"
           placeholder="e.g. AAPL, 005930.KS"
           oninput="onTickerInput(${{i}})">
         <div class="search-results" id="sr-${{i}}" style="display:none"></div>
       </div>
-      <div class="field"><label>Report date</label>
+      <div class="field"><label>Report date <span class="req">*</span></label>
         <input id="f-date-${{i}}" type="date" value="${{s.report_date||''}}"></div>
       <div class="field"><label>Past days (default)</label>
         <input id="f-pre-${{i}}" type="number" min="10" max="365" value="${{s.default_pre||60}}"></div>
@@ -746,25 +915,41 @@ function makeCard(s,i){{
     </div>
     <div class="field" style="margin-bottom:10px"><label>Label</label>
       <input id="f-label-${{i}}" value="${{s.label||''}}"></div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Tags <span style="color:var(--sub);font-weight:400">(comma separated, e.g. growth, korea, defense)</span></label>
+      <input id="f-tags-${{i}}" value="${{(s.tags||[]).join(', ')}}" placeholder="growth, korea, defense"></div>
     <div class="field"><label>Thesis</label>
       <textarea id="f-thesis-${{i}}">${{s.thesis||''}}</textarea></div>`;
   return div;
 }}
 
 function saveCard(i){{
+  const ticker = document.getElementById('f-ticker-'+i).value.toUpperCase().trim();
+  const date   = document.getElementById('f-date-'+i).value;
+  if (!ticker) {{ alert('Ticker is required.'); return; }}
+  if (!date)   {{ alert('Report date is required.'); return; }}
   const stocks=load();
   stocks[i]={{
-    ticker:       document.getElementById('f-ticker-'+i).value.toUpperCase().trim(),
-    report_date:  document.getElementById('f-date-'+i).value,
+    ...stocks[i],
+    ticker,
+    report_date:  date,
     label:        document.getElementById('f-label-'+i).value.trim(),
+    tags:         document.getElementById('f-tags-'+i).value
+                    .split(',').map(t=>t.trim().toLowerCase()).filter(Boolean),
     thesis:       document.getElementById('f-thesis-'+i).value.trim(),
     default_pre:  parseInt(document.getElementById('f-pre-' +i).value)||60,
     default_post: parseInt(document.getElementById('f-post-'+i).value)||60,
   }};
   save(stocks);
-  document.getElementById('mt-'+i).textContent=stocks[i].ticker;
+  document.getElementById('mt-'+i).textContent=ticker;
   const b=document.getElementById('sok-'+i);
   b.style.opacity='1'; setTimeout(()=>b.style.opacity='0',1400);
+}}
+
+function archiveCard(i){{
+  const stocks=load();
+  stocks[i].archived = !stocks[i].archived;
+  save(stocks); render();
 }}
 
 function deleteCard(i){{
@@ -849,19 +1034,32 @@ function buildYaml(stocks){{
     out+=`    thesis: "${{esc(s.thesis)}}"\\n`;
     out+=`    default_pre: ${{s.default_pre||60}}\\n`;
     out+=`    default_post: ${{s.default_post||60}}\\n`;
+    if (s.tags && s.tags.length) out+=`    tags: [${{s.tags.map(t=>'"'+t+'"').join(', ')}}]\\n`;
+    if (s.archived) out+=`    archived: true\\n`;
   }});
   return out;
 }}
 
-// ── Ticker search: Yahoo fetch → dumbstockapi fallback ───────────────────────
+// ── Ticker search: local search-index.json (서버사이드 빌드, CORS 없음) ────────
 const searchTimers = {{}};
+let searchIndex = null;
+
+// 첫 검색 시 한 번만 로드
+async function loadIndex() {{
+  if (searchIndex !== null) return searchIndex;
+  try {{
+    const r = await fetch('data/search-index.json');
+    searchIndex = r.ok ? await r.json() : [];
+  }} catch(e) {{ searchIndex = []; }}
+  return searchIndex;
+}}
 
 function onTickerInput(i) {{
   const q  = document.getElementById('f-ticker-'+i).value.trim();
   const sr = document.getElementById('sr-'+i);
   clearTimeout(searchTimers[i]);
   if (q.length < 1) {{ sr.style.display='none'; return; }}
-  searchTimers[i] = setTimeout(() => doSearch(i, q), 350);
+  searchTimers[i] = setTimeout(() => doSearch(i, q), 200);
 }}
 
 async function doSearch(i, q) {{
@@ -869,65 +1067,28 @@ async function doSearch(i, q) {{
   sr.style.display='block';
   sr.innerHTML='<div class="search-loading">Searching…</div>';
 
-  // 1st: Yahoo Finance v1 search (CORS 허용)
-  try {{
-    const res = await fetch(
-      'https://query2.finance.yahoo.com/v1/finance/search?q='
-      + encodeURIComponent(q)
-      + '&quotesCount=10&newsCount=0&enableFuzzyQuery=true',
-      {{signal: AbortSignal.timeout(4000), headers: {{'Accept':'application/json'}}}}
-    );
-    if (res.ok) {{
-      const data   = await res.json();
-      const quotes = (data?.quotes || [])
-        .filter(r => r.quoteType === 'EQUITY' || r.quoteType === 'ETF');
-      if (quotes.length) {{
-        sr.innerHTML = quotes.slice(0,10).map(r => {{
-          const sym  = (r.symbol  || '').replace(/'/g,"\\'");
-          const name = (r.longname||r.shortname||'').replace(/'/g,"\\'").slice(0,45);
-          const exch = (r.exchDisp||r.exchange||'').replace(/'/g,"\\'");
-          const type = r.quoteType === 'ETF' ? ' · ETF' : '';
-          return `<div class="search-item" onclick="selectTicker(${{i}},'${{sym}}','${{name}}','${{exch}}')">
-            <span class="si-ticker">${{sym}}</span>
-            <span class="si-name">${{name}}</span>
-            <span class="si-exch">${{exch}}${{type}}</span>
-          </div>`;
-        }}).join('');
-        return;
-      }}
-    }}
-  }} catch(e) {{}}
+  const idx = await loadIndex();
+  if (!idx.length) {{ sr.innerHTML = manualEntry(i, q); return; }}
 
-  // 2nd: dumbstockapi fallback
-  try {{
-    const [r1, r2] = await Promise.allSettled([
-      fetch('https://dumbstockapi.com/stock?ticker_search='+encodeURIComponent(q),
-        {{signal:AbortSignal.timeout(4000)}}),
-      fetch('https://dumbstockapi.com/stock?name_search='+encodeURIComponent(q),
-        {{signal:AbortSignal.timeout(4000)}}),
-    ]);
-    const seen=new Set(), results=[];
-    for (const p of [r1,r2]) {{
-      if (p.status!=='fulfilled'||!p.value.ok) continue;
-      for (const r of await p.value.json())
-        if (!seen.has(r.ticker)) {{ seen.add(r.ticker); results.push(r); }}
-    }}
-    if (results.length) {{
-      sr.innerHTML = results.slice(0,10).map(r => {{
-        const sym  = (r.ticker  ||'').replace(/'/g,"\\'");
-        const name = (r.name    ||'').replace(/'/g,"\\'").slice(0,45);
-        const exch =  r.exchange||'';
-        return `<div class="search-item" onclick="selectTicker(${{i}},'${{sym}}','${{name}}','${{exch}}')">
-          <span class="si-ticker">${{sym}}</span>
-          <span class="si-name">${{name}}</span>
-          <span class="si-exch">${{exch}}</span>
-        </div>`;
-      }}).join('');
-      return;
-    }}
-  }} catch(e) {{}}
+  const ql = q.toLowerCase();
+  // Match: ticker starts-with first, then name contains
+  const byTicker = idx.filter(r => r.s.toLowerCase().startsWith(ql));
+  const byName   = idx.filter(r => !r.s.toLowerCase().startsWith(ql)
+    && r.n.toLowerCase().includes(ql));
+  const results  = [...byTicker, ...byName].slice(0, 10);
 
-  sr.innerHTML = manualEntry(i, q);
+  if (!results.length) {{ sr.innerHTML = manualEntry(i, q); return; }}
+
+  sr.innerHTML = results.map(r => {{
+    const sym  = (r.s || '').replace(/'/g, "\\'");
+    const name = (r.n || '').replace(/'/g, "\\'").slice(0, 45);
+    const exch =  r.e || '';
+    return `<div class="search-item" onclick="selectTicker(${{i}},'${{sym}}','${{name}}','${{exch}}')">
+      <span class="si-ticker">${{sym}}</span>
+      <span class="si-name">${{name}}</span>
+      <span class="si-exch">${{exch}}</span>
+    </div>`;
+  }}).join('');
 }}
 
 function manualEntry(i, q) {{
@@ -976,6 +1137,9 @@ def main():
     print(f"Fetching {len(stocks)} stock(s)  [window: -{MAX_PRE}d / +{MAX_POST}d]\n")
 
     for s in stocks:
+        if s.get("archived"):
+            print(f"  ⏭  {s['ticker']} (archived, skipping)")
+            continue
         ticker      = s["ticker"]
         report_date = datetime.strptime(s["report_date"], "%Y-%m-%d")
         print(f"  → {ticker}  (report: {s['report_date']})")
@@ -989,18 +1153,71 @@ def main():
         except Exception as e:
             print(f"     ⚠  Skipped: {e}")
 
-    # Remove JSON files for tickers no longer in stocks.yaml
-    active = {s["ticker"] for s in stocks}
+    # Remove JSON files for tickers no longer active (deleted or archived)
+    active = {s["ticker"] for s in stocks if not s.get("archived")}
     for f in DATA.iterdir():
-        if f.suffix == ".json" and f.stem not in active:
+        if f.suffix == ".json" and f.stem not in active and f.stem != "search-index":
             f.unlink()
             print(f"  🗑  Removed stale {f.name}")
+
+    # Build search index
+    print("\nBuilding search index…")
+    build_search_index()
 
     plain = [dict(s) for s in stocks]
     (ROOT / "index.html").write_text(build_index(plain),  encoding="utf-8")
     (ROOT / "manage.html").write_text(build_manage(plain), encoding="utf-8")
     print(f"\n✅  index.html + manage.html written")
     print(f"    data/ → {[f.name for f in DATA.iterdir() if f.suffix == '.json']}")
+
+
+def build_search_index():
+    """
+    Download ticker lists from public NASDAQ/NYSE/AMEX APIs and
+    write data/search-index.json  [{symbol, name, exchange}, ...]
+    Falls back gracefully if any source fails.
+    """
+    import urllib.request, csv, io
+
+    results = []
+    seen    = set()
+
+    # NASDAQ public API — returns CSV with Symbol, Name, Market Cap, etc.
+    sources = [
+        ("NASDAQ", "https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=10000&exchange=NASDAQ&download=true"),
+        ("NYSE",   "https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=10000&exchange=NYSE&download=true"),
+        ("AMEX",   "https://api.nasdaq.com/api/screener/stocks?tableonly=true&limit=10000&exchange=AMEX&download=true"),
+    ]
+
+    headers = {
+        "User-Agent": "Mozilla/5.0",
+        "Accept":     "application/json",
+    }
+
+    for exch, url in sources:
+        try:
+            req  = urllib.request.Request(url, headers=headers)
+            resp = urllib.request.urlopen(req, timeout=15)
+            data = json.loads(resp.read())
+            rows = data.get("data", {}).get("rows", [])
+            for r in rows:
+                sym  = (r.get("symbol") or "").strip()
+                name = (r.get("name")   or "").strip()
+                if sym and sym not in seen:
+                    seen.add(sym)
+                    results.append({"s": sym, "n": name, "e": exch})
+            print(f"     ✓  {exch}: {len(rows)} tickers")
+        except Exception as ex:
+            print(f"     ⚠  {exch} failed: {ex}")
+
+    if not results:
+        print("     ⚠  Search index empty — all sources failed")
+        return
+
+    out = DATA / "search-index.json"
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(results, f, separators=(",", ":"))
+    print(f"     ✓  search-index.json written ({len(results)} tickers)")
 
 
 if __name__ == "__main__":
