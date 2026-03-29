@@ -98,13 +98,8 @@ PLOTLY_CDN = "https://cdn.plot.ly/plotly-2.32.0.min.js"
 
 COMMON_CSS = """
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#0d0f14;--panel:#13161e;--panel2:#1a1d27;--border:#252836;
-  --text:#c8cdd8;--sub:#5a6070;--accent:#f5c842;--blue:#4fa3f7;
-  --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
-  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
-}
-html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;
+  transition:background .2s,color .2s}
 .site-header{
   padding:13px 22px;border-bottom:1px solid var(--border);background:var(--panel);
   display:flex;align-items:center;justify-content:space-between;
@@ -116,51 +111,61 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   color:var(--sub);border:1px solid transparent;text-decoration:none;transition:all .15s}
 .nav a:hover{color:var(--text);border-color:var(--border)}
 .nav a.active{color:var(--accent);border-color:var(--accent)}
+.tab.tag-hidden{display:none}
+.tab.month-hidden{display:none}
 """
 
 
 # ── index.html ────────────────────────────────────────────────────────────────
 
 def build_index(stocks: list) -> str:
+    from collections import defaultdict
+    from datetime import datetime as _dt
+
     # Separate active vs archived
     active   = [s for s in stocks if not s.get("archived")]
     archived = [s for s in stocks if s.get("archived")]
 
-    # Build global index mapping (original position in full list)
-    all_stocks = active + archived
-    stocks_json = json.dumps(all_stocks, ensure_ascii=False)
+    stocks_json = json.dumps(active + archived, ensure_ascii=False)
 
-    # Group active stocks by YYYY-MM
-    from collections import defaultdict
-    months = defaultdict(list)
+    # Group active stocks by YYYY-MM, sorted newest first
+    months_map = defaultdict(list)
     for i, s in enumerate(active):
-        month = s["report_date"][:7]  # "2026-02"
-        months[month].append((i, s))
+        months_map[s["report_date"][:7]].append((i, s))
+    sorted_months = sorted(months_map.keys(), reverse=True)
 
-    # Sort months descending
-    sorted_months = sorted(months.keys(), reverse=True)
+    # Build tab bar: month group buttons + per-stock ticker tabs
+    tab_bar_html = ""
+    first_stock = True
+    for m in sorted_months:
+        month_label = _dt.strptime(m, "%Y-%m").strftime("%b %Y")
+        indices = [i for i, s in months_map[m]]
+        tab_bar_html += (
+            f'<button class="month-tab" onclick="switchMonth(\'{m}\')" '
+            f'id="mtab-{m}">{month_label}</button>'
+        )
+        for i, s in months_map[m]:
+            tags_str = " ".join(s.get("tags", []))
+            active_cls = " active" if first_stock else ""
+            tab_bar_html += (
+                f'<button class="tab{active_cls}" onclick="switchTab({i})" '
+                f'id="tab-{i}" data-month="{m}" data-tags="{tags_str}">'
+                f'{s["ticker"]}</button>'
+            )
+            first_stock = False
 
-    # Build tab bar (flat, one tab per active stock)
-    tabs = "".join(
-        f'<button class="tab{"  active" if i == 0 else ""}" '
-        f'onclick="switchTab({i})" id="tab-{i}">{s["ticker"]}</button>'
-        for i, s in enumerate(active)
-    )
-
-    # Build panels with month section headers
+    # Build panels
     panels = ""
     prev_month = None
     for i, s in enumerate(active):
-        month = s["report_date"][:7]
-        pre   = s.get("default_pre",  60)
-        post  = s.get("default_post", 60)
-        tags  = s.get("tags", [])
-        tags_str = " ".join(tags)  # for data attribute
-        tags_html = "".join(f'<span class="tag-pill">{t}</span>' for t in tags) if tags else ""
+        month    = s["report_date"][:7]
+        pre      = s.get("default_pre",  60)
+        post     = s.get("default_post", 60)
+        tags     = s.get("tags", [])
+        tags_str = " ".join(tags)
+        tags_html= "".join(f'<span class="tag-pill">{t}</span>' for t in tags)
 
-        # Month header
         if month != prev_month:
-            from datetime import datetime as _dt
             label = _dt.strptime(month, "%Y-%m").strftime("%B %Y")
             panels += f'<div class="month-header" data-month="{month}">{label}</div>'
             prev_month = month
@@ -319,17 +324,70 @@ def build_index(stocks: list) -> str:
   cursor:pointer;transition:all .15s;white-space:nowrap}}
 .tag-filter-btn:hover{{color:var(--text);border-color:var(--text)}}
 .tag-filter-btn.on{{background:var(--accent);color:var(--bg);border-color:var(--accent)}}
+
+/* ── Light / Dark mode ── */
+:root{{
+  --bg:#f5f4f0;--panel:#ffffff;--panel2:#f0efe9;--border:#e0ddd5;
+  --text:#1a1a1a;--sub:#888880;--accent:#b8860b;--blue:#2563eb;
+  --green:#16a34a;--red:#dc2626;--orange:#c2410c;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}}
+html.dark{{
+  --bg:#0d0f14;--panel:#13161e;--panel2:#1a1d27;--border:#252836;
+  --text:#c8cdd8;--sub:#5a6070;--accent:#f5c842;--blue:#4fa3f7;
+  --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
+}}
+
+/* ── Month group tabs ── */
+.month-tab{{font-family:var(--mono);font-size:10px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;padding:6px 14px 8px;
+  border:none;border-radius:4px 4px 0 0;background:var(--panel2);
+  color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;
+  white-space:nowrap;transition:all .15s;margin-right:4px}}
+.month-tab:hover{{color:var(--text)}}
+.month-tab.active{{background:var(--panel);color:var(--accent);border-bottom-color:var(--accent)}}
+.month-tab.hidden{{display:none}}
+
+/* ── Theme toggle ── */
+.theme-toggle{{font-family:var(--mono);font-size:10px;padding:3px 10px;
+  border-radius:20px;border:1px solid var(--border);background:transparent;
+  color:var(--sub);cursor:pointer;transition:all .15s}}
+.theme-toggle:hover{{color:var(--text);border-color:var(--text)}}
+
+/* ── Responsive ── */
+@media(max-width:640px){{
+  .site-header{{padding:10px 12px}}
+  .site-title{{font-size:10px}}
+  .content{{padding:10px 10px}}
+  .ctrl-row{{gap:10px;padding:8px 10px}}
+  .cg input[type=range]{{width:80px}}
+  .card-header{{gap:6px}}
+  .meta-row{{gap:8px}}
+  .embed-toggle-btn{{display:none}}
+  .chart-wrap{{height:280px}}
+  .vol-wrap{{height:70px}}
+  .tab-bar{{padding:6px 10px 0;gap:1px}}
+  .tab{{font-size:10px;padding:5px 10px 6px}}
+  .month-tab{{font-size:9px;padding:5px 8px 6px;margin-right:2px}}
+  .tag-filter-bar{{padding:8px 10px;gap:6px}}
+  .fgrid{{grid-template-columns:1fr 1fr!important}}
+}}
+@media(max-width:400px){{
+  .fgrid{{grid-template-columns:1fr!important}}
+  .cg{{flex-wrap:wrap}}
+}}
 </style>
 </head>
 <body>
 <header class="site-header">
   <span class="site-title">Stock Thesis Tracker</span>
-  <nav class="nav">
+  <nav class="nav" style="display:flex;align-items:center;gap:8px">
     <a href="index.html" class="active">Dashboard</a>
     <a href="manage.html">Manage</a>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☾ Dark</button>
   </nav>
 </header>
-<div class="tab-bar">{tabs}</div>
+<div class="tab-bar" id="tab-bar">{tab_bar_html}</div>
 {tag_filter_html}
 <div class="content">
 {panels}
@@ -341,19 +399,55 @@ const STOCKS    = {stocks_json};
 const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
 const TODAY_STR = TODAY.toISOString().slice(0,10);
 
-// Cache loaded JSON — fetched once per ticker, reused for all slider changes
 const jsonCache = {{}};
 const curPre    = {{}};
 const curPost   = {{}};
-
 STOCKS.forEach((s,i) => {{
   curPre[i]  = s.default_pre  || 60;
   curPost[i] = s.default_post || 60;
 }});
 
+// ── Theme ──────────────────────────────────────────────────────────────────
+function applyTheme(dark) {{
+  document.documentElement.classList.toggle('dark', dark);
+  document.getElementById('theme-btn').textContent = dark ? '☀ Light' : '☾ Dark';
+  localStorage.setItem('thesis_theme', dark ? 'dark' : 'light');
+}}
+function toggleTheme() {{
+  applyTheme(!document.documentElement.classList.contains('dark'));
+}}
+// Default: light; restore from localStorage if set
+(function() {{
+  const saved = localStorage.getItem('thesis_theme');
+  applyTheme(saved === 'dark');
+}})();
+
+// ── Month tab switching ────────────────────────────────────────────────────
+let activeMonth = null;
+
+function switchMonth(month) {{
+  activeMonth = month;
+  // Update month-tab highlight
+  document.querySelectorAll('.month-tab').forEach(b => {{
+    b.classList.toggle('active', b.id === 'mtab-'+month);
+  }});
+  // Show only tabs belonging to this month
+  const allTabs = document.querySelectorAll('.tab');
+  let firstVisible = -1;
+  allTabs.forEach((t, i) => {{
+    const show = t.dataset.month === month && !t.classList.contains('tag-hidden');
+    t.classList.toggle('month-hidden', t.dataset.month !== month);
+    if (show && firstVisible === -1) firstVisible = i;
+  }});
+  // Show/hide month headers in content
+  document.querySelectorAll('.month-header').forEach(h => {{
+    h.style.display = h.dataset.month === month ? '' : 'none';
+  }});
+  if (firstVisible >= 0) switchTab(firstVisible);
+}}
+
 document.addEventListener('DOMContentLoaded', () => {{
   const debounceTimers = {{}};
-
   STOCKS.forEach((s,i) => {{
     function onSliderChange() {{
       curPre[i]  = parseInt(document.getElementById('sl-pre-' +i).value);
@@ -363,31 +457,48 @@ document.addEventListener('DOMContentLoaded', () => {{
       clearTimeout(debounceTimers[i]);
       debounceTimers[i] = setTimeout(() => redraw(i), 120);
     }}
-    document.getElementById('sl-pre-' +i).addEventListener('input', onSliderChange);
-    document.getElementById('sl-post-'+i).addEventListener('input', onSliderChange);
+    const preEl  = document.getElementById('sl-pre-' +i);
+    const postEl = document.getElementById('sl-post-'+i);
+    if (preEl)  preEl.addEventListener('input', onSliderChange);
+    if (postEl) postEl.addEventListener('input', onSliderChange);
   }});
 
-  // ── URL param handling ───────────────────────────────────────────────────
-  const params   = new URLSearchParams(location.search);
+  // ── URL param handling ─────────────────────────────────────────────────
+  const params      = new URLSearchParams(location.search);
   const tickerParam = (params.get('ticker') || '').toUpperCase();
   const embedMode   = params.get('embed') === '1';
 
-  // embed=1 → hide header, tab-bar, embed-bar; show only the chart panel
   if (embedMode) {{
     document.querySelector('.site-header').style.display = 'none';
     document.querySelector('.tab-bar').style.display     = 'none';
+    const tfb = document.querySelector('.tag-filter-bar');
+    if (tfb) tfb.style.display = 'none';
     document.querySelectorAll('.embed-bar').forEach(el => el.style.display = 'none');
   }}
 
-  // Populate embed URLs for each panel
+  // Populate embed URLs
   const baseUrl = location.origin + location.pathname;
   STOCKS.forEach((s,i) => {{
-    const url = `${{baseUrl}}?ticker=${{s.ticker}}&embed=1`;
-    const el  = document.getElementById('embedurl-'+i);
-    if (el) el.textContent = url;
+    const el = document.getElementById('embedurl-'+i);
+    if (el) el.textContent = `${{baseUrl}}?ticker=${{s.ticker}}&embed=1`;
   }});
 
-  // Pick initial tab
+  // Activate first month tab
+  const firstMonthTab = document.querySelector('.month-tab');
+  if (firstMonthTab) {{
+    firstMonthTab.classList.add('active');
+    activeMonth = firstMonthTab.id.replace('mtab-','');
+    // Hide all tabs not in this month initially
+    document.querySelectorAll('.tab').forEach(t => {{
+      if (t.dataset.month !== activeMonth)
+        t.classList.add('month-hidden');
+    }});
+    document.querySelectorAll('.month-header').forEach(h => {{
+      if (h.dataset.month !== activeMonth) h.style.display = 'none';
+    }});
+  }}
+
+  // Pick initial tab from URL or default
   let startTab = 0;
   if (tickerParam) {{
     const idx = STOCKS.findIndex(s => s.ticker.toUpperCase() === tickerParam);
@@ -599,10 +710,25 @@ function redraw(i) {{
       : ''}}`;
 
   // category xaxis = no weekend/holiday gaps
+  const isDark   = document.documentElement.classList.contains('dark');
+  const gridC    = isDark ? '#1e2230'   : '#e8e6e0';
+  const tickC    = isDark ? '#5a6070'   : '#888880';
+  const panelBg  = isDark ? '#13161e'   : '#ffffff';
+  const panelBg2 = isDark ? '#1a1d27'   : '#f5f4f0';
+  const textC    = isDark ? '#c8cdd8'   : '#1a1a1a';
+  const reportC  = isDark ? '#f5c842'   : '#b8860b';
+  const todayC   = isDark ? '#4fa3f7'   : '#2563eb';
+  const bullC    = isDark ? '#00e5a0'   : '#16a34a';
+  const bearC    = isDark ? '#ff4d6a'   : '#dc2626';
+  const bullF    = isDark ? 'rgba(0,229,160,0.22)'  : 'rgba(22,163,74,0.22)';
+  const bearF    = isDark ? 'rgba(255,77,106,0.22)' : 'rgba(220,38,38,0.22)';
+  const ma20C    = isDark ? '#4fa3f7'   : '#2563eb';
+  const ma50C    = isDark ? '#f77f4f'   : '#c2410c';
+
   const axisStyle = {{
     type:'category',
-    gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
-    tickfont:{{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" }},
+    gridcolor:gridC, zerolinecolor:gridC, linecolor:gridC,
+    tickfont:{{ size:10, color:tickC, family:"'IBM Plex Mono',monospace" }},
     tickangle: 0,
     nticks: 10,
   }};
@@ -613,57 +739,59 @@ function redraw(i) {{
   if (riIdx >= 0) {{
     shapes.push({{ type:'line',
       x0:riIdx, x1:riIdx, y0:0, y1:1, yref:'paper', xref:'x',
-      line:{{ color:'#f5c842', width:1.8, dash:'dash' }} }});
+      line:{{ color:reportC, width:1.8, dash:'dash' }} }});
     annotations.push({{ x:riIdx, y:1, yref:'paper', xref:'x',
       text:'Report', showarrow:false, xanchor:'left', yanchor:'top',
-      font:{{ color:'#f5c842', size:10, family:"'IBM Plex Mono',monospace" }},
-      bgcolor:'rgba(13,15,20,.85)', bordercolor:'#f5c842', borderwidth:1 }});
+      font:{{ color:reportC, size:10, family:"'IBM Plex Mono',monospace" }},
+      bgcolor: isDark?'rgba(13,15,20,.85)':'rgba(245,244,240,.9)',
+      bordercolor:reportC, borderwidth:1 }});
   }}
 
   if (showToday && tiIdx >= 0) {{
     shapes.push({{ type:'line',
       x0:tiIdx, x1:tiIdx, y0:0, y1:1, yref:'paper', xref:'x',
-      line:{{ color:'#4fa3f7', width:1.2, dash:'dot' }} }});
+      line:{{ color:todayC, width:1.2, dash:'dot' }} }});
     annotations.push({{ x:tiIdx, y:1, yref:'paper', xref:'x',
       text:'Today', showarrow:false, xanchor:'right', yanchor:'top',
-      font:{{ color:'#4fa3f7', size:10, family:"'IBM Plex Mono',monospace" }},
-      bgcolor:'rgba(13,15,20,.85)', bordercolor:'#4fa3f7', borderwidth:1 }});
+      font:{{ color:todayC, size:10, family:"'IBM Plex Mono',monospace" }},
+      bgcolor: isDark?'rgba(13,15,20,.85)':'rgba(245,244,240,.9)',
+      bordercolor:todayC, borderwidth:1 }});
   }}
 
   const layout = {{
-    paper_bgcolor:'#13161e', plot_bgcolor:'#13161e',
-    font:{{ color:'#c8cdd8', family:"'IBM Plex Mono',monospace" }},
+    paper_bgcolor:panelBg, plot_bgcolor:panelBg,
+    font:{{ color:textC, family:"'IBM Plex Mono',monospace" }},
     xaxis:{{ ...axisStyle, rangeslider:{{ visible:false }} }},
-    yaxis:{{ gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
-      tickfont:{{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" }},
+    yaxis:{{ gridcolor:gridC, zerolinecolor:gridC, linecolor:gridC,
+      tickfont:{{ size:10, color:tickC, family:"'IBM Plex Mono',monospace" }},
       side:'right', range:[yMin,yMax],
-      title:{{ text:'Price', font:{{ size:10, color:'#5a6070' }} }} }},
+      title:{{ text:'Price', font:{{ size:10, color:tickC }} }} }},
     shapes, annotations, showlegend:false,
     margin:{{ l:10, r:65, t:16, b:40 }},
     hovermode:'x unified',
-    hoverlabel:{{ bgcolor:'#1a1d27', bordercolor:'#252836',
-      font:{{ color:'#c8cdd8', size:11, family:"'IBM Plex Mono',monospace" }} }},
+    hoverlabel:{{ bgcolor:panelBg2, bordercolor:gridC,
+      font:{{ color:textC, size:11, family:"'IBM Plex Mono',monospace" }} }},
   }};
 
   const volAxisStyle = {{
     type:'category',
-    gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
-    tickfont:{{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" }},
+    gridcolor:gridC, zerolinecolor:gridC, linecolor:gridC,
+    tickfont:{{ size:10, color:tickC, family:"'IBM Plex Mono',monospace" }},
   }};
 
   const volLayout = {{
-    paper_bgcolor:'#13161e', plot_bgcolor:'#13161e',
-    font:{{ color:'#c8cdd8', family:"'IBM Plex Mono',monospace" }},
+    paper_bgcolor:panelBg, plot_bgcolor:panelBg,
+    font:{{ color:textC, family:"'IBM Plex Mono',monospace" }},
     xaxis:{{ ...volAxisStyle, rangeslider:{{ visible:false }} }},
-    yaxis:{{ gridcolor:'#1e2230', zerolinecolor:'#1e2230', linecolor:'#1e2230',
-      tickfont:{{ size:10, color:'#5a6070', family:"'IBM Plex Mono',monospace" }},
+    yaxis:{{ gridcolor:gridC, zerolinecolor:gridC, linecolor:gridC,
+      tickfont:{{ size:10, color:tickC, family:"'IBM Plex Mono',monospace" }},
       side:'right', tickformat:'.2s',
-      title:{{ text:'Vol', font:{{ size:10, color:'#5a6070' }} }} }},
+      title:{{ text:'Vol', font:{{ size:10, color:tickC }} }} }},
     shapes: shapes.map(sh => ({{...sh}})),
     showlegend:false, margin:{{ l:10, r:65, t:4, b:40 }},
     hovermode:'x unified',
-    hoverlabel:{{ bgcolor:'#1a1d27', bordercolor:'#252836',
-      font:{{ color:'#c8cdd8', size:11 }} }},
+    hoverlabel:{{ bgcolor:panelBg2, bordercolor:gridC,
+      font:{{ color:textC, size:11 }} }},
   }};
 
   const cfg = {{ responsive:true, displayModeBar:false }};
@@ -677,18 +805,18 @@ function redraw(i) {{
        high:  candleRows.map(r => r?.h ?? null),
        low:   candleRows.map(r => r?.l ?? null),
        close: candleRows.map(r => r?.c ?? null),
-       increasing:{{ line:{{ color:'#00e5a0', width:1 }}, fillcolor:'#00e5a0' }},
-       decreasing:{{ line:{{ color:'#ff4d6a', width:1 }}, fillcolor:'#ff4d6a' }},
+       increasing:{{ line:{{ color:bullC, width:1 }}, fillcolor:bullC }},
+       decreasing:{{ line:{{ color:bearC, width:1 }}, fillcolor:bearC }},
        whiskerwidth:0.5, name:s.ticker }},
      {{ type:'scatter', x:allDates, y:ma20, mode:'lines', name:'MA 20',
-       line:{{ color:'#4fa3f7', width:1.3, dash:'dot' }}, opacity:0.85, connectgaps:false }},
+       line:{{ color:ma20C, width:1.3, dash:'dot' }}, opacity:0.85, connectgaps:false }},
      {{ type:'scatter', x:allDates, y:ma50, mode:'lines', name:'MA 50',
-       line:{{ color:'#f77f4f', width:1.3, dash:'dot' }}, opacity:0.85, connectgaps:false }}],
+       line:{{ color:ma50C, width:1.3, dash:'dot' }}, opacity:0.85, connectgaps:false }}],
     layout, cfg);
 
   Plotly.newPlot('vol-'+i,
     [{{ type:'bar', x:allDates, y:candleRows.map(r => r?.v ?? null),
-       marker:{{ color:bull.map(b => b ? 'rgba(0,229,160,.22)' : 'rgba(255,77,106,.22)'),
+       marker:{{ color:bull.map(b => b ? bullF : bearF),
                  line:{{ width:0 }} }},
        showlegend:false }}],
     volLayout, cfg);
@@ -719,6 +847,21 @@ def build_manage(stocks: list) -> str:
 <link href="{GOOGLE_FONTS}" rel="stylesheet">
 <style>
 {COMMON_CSS}
+:root{{
+  --bg:#f5f4f0;--panel:#ffffff;--panel2:#f0efe9;--border:#e0ddd5;
+  --text:#1a1a1a;--sub:#888880;--accent:#b8860b;--blue:#2563eb;
+  --green:#16a34a;--red:#dc2626;--orange:#c2410c;
+  --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;
+}}
+html.dark{{
+  --bg:#0d0f14;--panel:#13161e;--panel2:#1a1d27;--border:#252836;
+  --text:#c8cdd8;--sub:#5a6070;--accent:#f5c842;--blue:#4fa3f7;
+  --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
+}}
+.theme-toggle{{font-family:var(--mono);font-size:10px;padding:3px 10px;
+  border-radius:20px;border:1px solid var(--border);background:transparent;
+  color:var(--sub);cursor:pointer;transition:all .15s}}
+.theme-toggle:hover{{color:var(--text);border-color:var(--text)}}
 .page-body{{max-width:820px;margin:0 auto;padding:24px 16px}}
 h2{{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.1em;
   text-transform:uppercase;color:var(--accent);margin-bottom:14px}}
@@ -775,16 +918,35 @@ code{{font-family:var(--mono);font-size:11px;color:var(--accent)}}
 .search-item .si-name{{font-size:11px;color:var(--sub);margin-left:8px}}
 .search-item .si-exch{{font-size:10px;color:var(--sub);float:right;margin-top:2px}}
 .search-loading{{padding:8px 10px;font-size:11px;color:var(--sub);font-family:var(--mono)}}
+@media(max-width:640px){{
+  .fgrid{{grid-template-columns:1fr 1fr!important}}
+  .page-body{{padding:12px}}
+  .site-header{{padding:10px 12px}}
+}}
+@media(max-width:400px){{
+  .fgrid{{grid-template-columns:1fr!important}}
+}}
 </style>
 </head>
 <body>
 <header class="site-header">
   <span class="site-title">Stock Thesis Tracker</span>
-  <nav class="nav">
+  <nav class="nav" style="display:flex;align-items:center;gap:8px">
     <a href="index.html">Dashboard</a>
     <a href="manage.html" class="active">Manage</a>
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☾ Dark</button>
   </nav>
 </header>
+<script>
+function applyTheme(dark){{
+  document.documentElement.classList.toggle('dark',dark);
+  const btn=document.getElementById('theme-btn');
+  if(btn) btn.textContent=dark?'☀ Light':'☾ Dark';
+  localStorage.setItem('thesis_theme',dark?'dark':'light');
+}}
+function toggleTheme(){{applyTheme(!document.documentElement.classList.contains('dark'));}}
+(function(){{applyTheme(localStorage.getItem('thesis_theme')==='dark');}})();
+</script>
 <div class="page-body">
 
   <div class="info-box">
