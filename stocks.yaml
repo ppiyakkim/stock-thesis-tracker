@@ -6,66 +6,77 @@ stocks:
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["singapore", "aviation", "value"]
   - ticker: 0293.HK
     report_date: "2026-02-28"
     label: "Cathay Pacific Airways"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["hongkong", "aviation", "value"]
   - ticker: IAG.L
     report_date: "2026-02-28"
     label: "International Consolidated Airlines Group"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["uk", "aviation"]
   - ticker: RYA.IR
     report_date: "2026-02-28"
     label: "Ryanair Holdings plc"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["uk", "aviation"]
   - ticker: AAL
     report_date: "2026-02-28"
     label: "American Airlines Group, Inc."
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["usa", "aviation"]
   - ticker: 012450.KS
     report_date: "2026-02-28"
     label: "Hanwha Aerospace"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["defense", "kroea"]
   - ticker: RR.L
     report_date: "2026-02-28"
     label: "Rolls-Royce Holdings plc"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["defense", "uk"]
   - ticker: AIR.PA
     report_date: "2026-02-28"
     label: "Airbus SE"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["defense", "aviation", "europe"]
   - ticker: BA.L
     report_date: "2026-02-28"
     label: "BAE Systems plc"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
+    tags: ["uk", "defense"]
   - ticker: D05.SI
     report_date: "2026-02-28"
     label: "DBS Group Holdings Ltd"
     thesis: "Regional bank performance"
     default_pre: 100
     default_post: 60
+    tags: ["singapore", "finance"]
   - ticker: IBN.BA
     report_date: "2026-02-28"
     label: "ICICI Bank Limited"
     thesis: "Regional bank performance"
     default_pre: 100
     default_post: 60
+    tags: ["india", "finance", "em"]
   - ticker: CPNG
     report_date: "2025-10-30"
     label: "Coupang Inc."
