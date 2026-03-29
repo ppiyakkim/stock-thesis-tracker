@@ -58,7 +58,7 @@ def fetch(ticker: str, report_date: datetime) -> pd.DataFrame:
     return df[(df.index >= left) & (df.index <= right)]
 
 
-def df_to_payload(df: pd.DataFrame, report_date: datetime) -> dict:
+def df_to_payload(df: pd.DataFrame, report_date: datetime, currency: str = "") -> dict:
     def safe(v):
         try:
             f = float(v)
@@ -82,6 +82,7 @@ def df_to_payload(df: pd.DataFrame, report_date: datetime) -> dict:
     return {
         "report_date": report_date.strftime("%Y-%m-%d"),
         "generated":   date.today().isoformat(),
+        "currency":    currency,
         "max_pre":     MAX_PRE,
         "max_post":    MAX_POST,
         "rows":        rows,
@@ -399,6 +400,7 @@ html.dark{{
 /* ── Embed mode ── */
 body.embed-mode{{background:transparent}}
 body.embed-mode .content{{padding:0}}
+body.embed-mode .month-header{{display:none}}
 body.embed-mode .panel.visible{{display:flex;flex-direction:column;height:100vh;min-height:400px}}
 body.embed-mode .chart-wrap{{flex:1;height:auto;min-height:200px;border-radius:0}}
 body.embed-mode .vol-wrap{{height:72px;flex-shrink:0;border-radius:0}}
@@ -878,10 +880,14 @@ function redraw(i) {{
   const statEl = document.getElementById('pstat-'+i);
   if (!statEl) return;
 
-  const panelEl = document.getElementById('panel-'+i);
-  const target  = panelEl ? parseFloat(panelEl.dataset.target) : NaN;
+  const panelEl    = document.getElementById('panel-'+i);
+  const target     = panelEl ? parseFloat(panelEl.dataset.target) : NaN;
+  const currency   = (json.currency || '').toUpperCase();
 
-  // Report date price: closing price of the report date (or nearest trading day)
+  // GBX (pence) → label as GBX, values already in pence from yfinance
+  const currLabel  = currency || '';
+
+  // Report date price
   const reportRow = json.rows.find(r => r.date === json.report_date)
     || json.rows.reduce((best, r) => {{
       const diff = Math.abs(new Date(r.date) - new Date(json.report_date));
@@ -899,11 +905,15 @@ function redraw(i) {{
   }}
   function cls(v) {{ return v === null ? 'neutral' : parseFloat(v) >= 0 ? 'up' : 'dn'; }}
   function fmt(v) {{ return v === null ? '—' : (parseFloat(v) >= 0 ? '+' : '') + v + '%'; }}
-  function fmtPx(v) {{ return v === null ? '—' : v.toFixed(2); }}
+  function fmtPx(v) {{
+    if (v === null) return '—';
+    const num = parseFloat(v);
+    // Comma-separated, 2 decimal places
+    const formatted = num.toLocaleString('en-US', {{minimumFractionDigits:2, maximumFractionDigits:2}});
+    return currLabel ? formatted + ' ' + currLabel : formatted;
+  }}
 
   let html = '';
-
-  // Always show: report price + today price + today vs report
   const todayVsReport = pct(reportPrice, todayPrice);
   html += `
     <div class="pstat">
@@ -919,14 +929,13 @@ function redraw(i) {{
       <span class="pstat-value ${{cls(todayVsReport)}}">${{fmt(todayVsReport)}}</span>
     </div>`;
 
-  // If target price set: show upside from report + from today
   if (!isNaN(target) && target > 0) {{
     const uptReport = pct(reportPrice, target);
     const uptToday  = pct(todayPrice,  target);
     html += `
     <div class="pstat" style="border-color:var(--accent)">
-      <span class="pstat-label">Target</span>
-      <span class="pstat-value neutral">${{target.toFixed(2)}}</span>
+      <span class="pstat-label">Target${{currLabel ? ' ('+currLabel+')' : ''}}</span>
+      <span class="pstat-value neutral">${{fmtPx(target)}}</span>
     </div>
     <div class="pstat">
       <span class="pstat-label">Upside from report</span>
@@ -1426,12 +1435,18 @@ def main():
         report_date = datetime.strptime(s["report_date"], "%Y-%m-%d")
         print(f"  → {ticker}  (report: {s['report_date']})")
         try:
-            df      = fetch(ticker, report_date)
-            payload = df_to_payload(df, report_date)
+            df = fetch(ticker, report_date)
+            # Get currency from yfinance ticker info
+            try:
+                info     = yf.Ticker(ticker).fast_info
+                currency = getattr(info, "currency", "") or ""
+            except Exception:
+                currency = ""
+            payload = df_to_payload(df, report_date, currency)
             out     = DATA / f"{ticker}.json"
             with open(out, "w", encoding="utf-8") as fh:
                 json.dump(payload, fh, separators=(",", ":"))
-            print(f"     ✓  {out.name}  ({len(payload['rows'])} rows)")
+            print(f"     ✓  {out.name}  ({len(payload['rows'])} rows, {currency})")
         except Exception as e:
             print(f"     ⚠  Skipped: {e}")
 
