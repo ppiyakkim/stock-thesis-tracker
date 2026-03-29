@@ -12,7 +12,7 @@ stocks:
     thesis: "Related to Geopolitical risks"
     default_pre: 100
     default_post: 60
-  - ticker: IAL.L
+  - ticker: IAG.L
     report_date: "2026-02-28"
     label: "International Consolidated Airlines Group"
     thesis: "Related to Geopolitical risks"
