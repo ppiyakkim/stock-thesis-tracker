@@ -46,11 +46,15 @@ button{font-family:var(--mono);font-size:10px;padding:4px 11px;border-radius:4px
 .btn-sv:hover{background:var(--green);color:var(--bg)}
 .btn-dl{color:var(--red);border-color:var(--red)}
 .btn-dl:hover{background:var(--red);color:#fff}
+.btn-arch{color:var(--sub);border-color:var(--sub)}
+.btn-arch:hover{color:var(--text);border-color:var(--text)}
 .btn-add{color:var(--accent);border-color:var(--accent);margin-bottom:14px}
 .btn-add:hover{background:var(--accent);color:var(--bg)}
 .btn-pub{font-size:12px;padding:7px 18px;background:var(--blue);
   color:var(--bg);border-color:var(--blue)}
 .btn-pub:hover{opacity:.85}
+.req{color:var(--red);margin-left:2px}
+.archived-card{opacity:0.55}
 .fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:10px}
 .field label{display:block;font-family:var(--mono);font-size:9px;color:var(--sub);
   margin-bottom:3px;letter-spacing:.05em;text-transform:uppercase}
@@ -130,7 +134,7 @@ code{font-family:var(--mono);font-size:11px;color:var(--accent)}
 </div>
 
 <script>
-const DEFAULT_STOCKS = [{"ticker": "C6L.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAL.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}];
+const DEFAULT_STOCKS = [{"ticker": "C6L.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAG.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}];
 const LS_STOCKS = 'thesis_stocks_v2';
 const LS_GH     = 'thesis_gh_v1';
 
@@ -142,9 +146,49 @@ function save(s){ localStorage.setItem(LS_STOCKS, JSON.stringify(s)); }
 
 function render(){
   const stocks = load();
-  document.getElementById('stock-list').innerHTML = '';
-  stocks.forEach((s,i) =>
-    document.getElementById('stock-list').appendChild(makeCard(s,i)));
+  const list   = document.getElementById('stock-list');
+  list.innerHTML = '';
+
+  const active   = stocks.filter(s => !s.archived);
+  const archived = stocks.filter(s =>  s.archived);
+
+  // Group active by month
+  const months = {};
+  active.forEach((s,idx) => {
+    const realIdx = stocks.indexOf(s);
+    const m = (s.report_date||'').slice(0,7) || 'No date';
+    if (!months[m]) months[m] = [];
+    months[m].push([realIdx, s]);
+  });
+
+  // Sort months descending
+  Object.keys(months).sort().reverse().forEach(m => {
+    const mLabel = m === 'No date' ? 'No date' :
+      new Date(m+'-01').toLocaleDateString('en', {year:'numeric',month:'long'});
+    const hdr = document.createElement('div');
+    hdr.style.cssText='font-family:var(--font-mono,monospace);font-size:10px;font-weight:600;'
+      +'letter-spacing:.1em;text-transform:uppercase;color:var(--sub);'
+      +'padding:10px 0 6px;border-bottom:1px solid var(--border);margin-bottom:8px;margin-top:14px';
+    hdr.textContent = mLabel;
+    list.appendChild(hdr);
+    months[m].forEach(([realIdx, s]) => list.appendChild(makeCard(s, realIdx)));
+  });
+
+  // Archived section
+  if (archived.length) {
+    const ahdr = document.createElement('div');
+    ahdr.style.cssText='font-family:var(--font-mono,monospace);font-size:10px;font-weight:600;'
+      +'letter-spacing:.1em;text-transform:uppercase;color:var(--sub);'
+      +'padding:10px 0 6px;border-top:1px solid var(--border);'
+      +'border-bottom:1px solid var(--border);margin:20px 0 8px';
+    ahdr.textContent = 'Archived';
+    list.appendChild(ahdr);
+    archived.forEach(s => {
+      const realIdx = stocks.indexOf(s);
+      list.appendChild(makeCard(s, realIdx));
+    });
+  }
+
   const gh = JSON.parse(localStorage.getItem(LS_GH)||'{}');
   if (gh.owner) document.getElementById('gh-owner').value = gh.owner;
   if (gh.repo)  document.getElementById('gh-repo').value  = gh.repo;
@@ -152,25 +196,26 @@ function render(){
 
 function makeCard(s,i){
   const div = document.createElement('div');
-  div.className='stock-card'; div.id='card-'+i;
+  div.className='stock-card'+(s.archived?' archived-card':''); div.id='card-'+i;
   div.innerHTML=`
     <div class="sch">
-      <span class="sticker" id="mt-${i}">${s.ticker}</span>
+      <span class="sticker" id="mt-${i}">${s.ticker}${s.archived?' <span style="font-size:9px;color:var(--sub);font-weight:400">ARCHIVED</span>':''}</span>
       <div class="btn-g">
         <button class="btn-sv" onclick="saveCard(${i})">Save</button>
         <span class="saved-ok" id="sok-${i}">✓ saved</span>
+        <button class="btn-arch" onclick="archiveCard(${i})">${s.archived?'Unarchive':'Archive'}</button>
         <button class="btn-dl" onclick="deleteCard(${i})">Delete</button>
       </div>
     </div>
     <div class="fgrid">
       <div class="field search-wrap">
-        <label>Ticker</label>
+        <label>Ticker <span class="req">*</span></label>
         <input id="f-ticker-${i}" value="${s.ticker||''}" autocomplete="off"
           placeholder="e.g. AAPL, 005930.KS"
           oninput="onTickerInput(${i})">
         <div class="search-results" id="sr-${i}" style="display:none"></div>
       </div>
-      <div class="field"><label>Report date</label>
+      <div class="field"><label>Report date <span class="req">*</span></label>
         <input id="f-date-${i}" type="date" value="${s.report_date||''}"></div>
       <div class="field"><label>Past days (default)</label>
         <input id="f-pre-${i}" type="number" min="10" max="365" value="${s.default_pre||60}"></div>
@@ -179,25 +224,41 @@ function makeCard(s,i){
     </div>
     <div class="field" style="margin-bottom:10px"><label>Label</label>
       <input id="f-label-${i}" value="${s.label||''}"></div>
+    <div class="field" style="margin-bottom:10px">
+      <label>Tags <span style="color:var(--sub);font-weight:400">(comma separated, e.g. growth, korea, defense)</span></label>
+      <input id="f-tags-${i}" value="${(s.tags||[]).join(', ')}" placeholder="growth, korea, defense"></div>
     <div class="field"><label>Thesis</label>
       <textarea id="f-thesis-${i}">${s.thesis||''}</textarea></div>`;
   return div;
 }
 
 function saveCard(i){
+  const ticker = document.getElementById('f-ticker-'+i).value.toUpperCase().trim();
+  const date   = document.getElementById('f-date-'+i).value;
+  if (!ticker) { alert('Ticker is required.'); return; }
+  if (!date)   { alert('Report date is required.'); return; }
   const stocks=load();
   stocks[i]={
-    ticker:       document.getElementById('f-ticker-'+i).value.toUpperCase().trim(),
-    report_date:  document.getElementById('f-date-'+i).value,
+    ...stocks[i],
+    ticker,
+    report_date:  date,
     label:        document.getElementById('f-label-'+i).value.trim(),
+    tags:         document.getElementById('f-tags-'+i).value
+                    .split(',').map(t=>t.trim().toLowerCase()).filter(Boolean),
     thesis:       document.getElementById('f-thesis-'+i).value.trim(),
     default_pre:  parseInt(document.getElementById('f-pre-' +i).value)||60,
     default_post: parseInt(document.getElementById('f-post-'+i).value)||60,
   };
   save(stocks);
-  document.getElementById('mt-'+i).textContent=stocks[i].ticker;
+  document.getElementById('mt-'+i).textContent=ticker;
   const b=document.getElementById('sok-'+i);
   b.style.opacity='1'; setTimeout(()=>b.style.opacity='0',1400);
+}
+
+function archiveCard(i){
+  const stocks=load();
+  stocks[i].archived = !stocks[i].archived;
+  save(stocks); render();
 }
 
 function deleteCard(i){
@@ -282,19 +343,32 @@ function buildYaml(stocks){
     out+=`    thesis: "${esc(s.thesis)}"\n`;
     out+=`    default_pre: ${s.default_pre||60}\n`;
     out+=`    default_post: ${s.default_post||60}\n`;
+    if (s.tags && s.tags.length) out+=`    tags: [${s.tags.map(t=>'"'+t+'"').join(', ')}]\n`;
+    if (s.archived) out+=`    archived: true\n`;
   });
   return out;
 }
 
-// ── Ticker search: Yahoo fetch → dumbstockapi fallback ───────────────────────
+// ── Ticker search: local search-index.json (서버사이드 빌드, CORS 없음) ────────
 const searchTimers = {};
+let searchIndex = null;
+
+// 첫 검색 시 한 번만 로드
+async function loadIndex() {
+  if (searchIndex !== null) return searchIndex;
+  try {
+    const r = await fetch('data/search-index.json');
+    searchIndex = r.ok ? await r.json() : [];
+  } catch(e) { searchIndex = []; }
+  return searchIndex;
+}
 
 function onTickerInput(i) {
   const q  = document.getElementById('f-ticker-'+i).value.trim();
   const sr = document.getElementById('sr-'+i);
   clearTimeout(searchTimers[i]);
   if (q.length < 1) { sr.style.display='none'; return; }
-  searchTimers[i] = setTimeout(() => doSearch(i, q), 350);
+  searchTimers[i] = setTimeout(() => doSearch(i, q), 200);
 }
 
 async function doSearch(i, q) {
@@ -302,65 +376,28 @@ async function doSearch(i, q) {
   sr.style.display='block';
   sr.innerHTML='<div class="search-loading">Searching…</div>';
 
-  // 1st: Yahoo Finance v1 search (CORS 허용)
-  try {
-    const res = await fetch(
-      'https://query2.finance.yahoo.com/v1/finance/search?q='
-      + encodeURIComponent(q)
-      + '&quotesCount=10&newsCount=0&enableFuzzyQuery=true',
-      {signal: AbortSignal.timeout(4000), headers: {'Accept':'application/json'}}
-    );
-    if (res.ok) {
-      const data   = await res.json();
-      const quotes = (data?.quotes || [])
-        .filter(r => r.quoteType === 'EQUITY' || r.quoteType === 'ETF');
-      if (quotes.length) {
-        sr.innerHTML = quotes.slice(0,10).map(r => {
-          const sym  = (r.symbol  || '').replace(/'/g,"\'");
-          const name = (r.longname||r.shortname||'').replace(/'/g,"\'").slice(0,45);
-          const exch = (r.exchDisp||r.exchange||'').replace(/'/g,"\'");
-          const type = r.quoteType === 'ETF' ? ' · ETF' : '';
-          return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
-            <span class="si-ticker">${sym}</span>
-            <span class="si-name">${name}</span>
-            <span class="si-exch">${exch}${type}</span>
-          </div>`;
-        }).join('');
-        return;
-      }
-    }
-  } catch(e) {}
+  const idx = await loadIndex();
+  if (!idx.length) { sr.innerHTML = manualEntry(i, q); return; }
 
-  // 2nd: dumbstockapi fallback
-  try {
-    const [r1, r2] = await Promise.allSettled([
-      fetch('https://dumbstockapi.com/stock?ticker_search='+encodeURIComponent(q),
-        {signal:AbortSignal.timeout(4000)}),
-      fetch('https://dumbstockapi.com/stock?name_search='+encodeURIComponent(q),
-        {signal:AbortSignal.timeout(4000)}),
-    ]);
-    const seen=new Set(), results=[];
-    for (const p of [r1,r2]) {
-      if (p.status!=='fulfilled'||!p.value.ok) continue;
-      for (const r of await p.value.json())
-        if (!seen.has(r.ticker)) { seen.add(r.ticker); results.push(r); }
-    }
-    if (results.length) {
-      sr.innerHTML = results.slice(0,10).map(r => {
-        const sym  = (r.ticker  ||'').replace(/'/g,"\'");
-        const name = (r.name    ||'').replace(/'/g,"\'").slice(0,45);
-        const exch =  r.exchange||'';
-        return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
-          <span class="si-ticker">${sym}</span>
-          <span class="si-name">${name}</span>
-          <span class="si-exch">${exch}</span>
-        </div>`;
-      }).join('');
-      return;
-    }
-  } catch(e) {}
+  const ql = q.toLowerCase();
+  // Match: ticker starts-with first, then name contains
+  const byTicker = idx.filter(r => r.s.toLowerCase().startsWith(ql));
+  const byName   = idx.filter(r => !r.s.toLowerCase().startsWith(ql)
+    && r.n.toLowerCase().includes(ql));
+  const results  = [...byTicker, ...byName].slice(0, 10);
 
-  sr.innerHTML = manualEntry(i, q);
+  if (!results.length) { sr.innerHTML = manualEntry(i, q); return; }
+
+  sr.innerHTML = results.map(r => {
+    const sym  = (r.s || '').replace(/'/g, "\'");
+    const name = (r.n || '').replace(/'/g, "\'").slice(0, 45);
+    const exch =  r.e || '';
+    return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
+      <span class="si-ticker">${sym}</span>
+      <span class="si-name">${name}</span>
+      <span class="si-exch">${exch}</span>
+    </div>`;
+  }).join('');
 }
 
 function manualEntry(i, q) {

@@ -30,13 +30,14 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 .nav a.active{color:var(--accent);border-color:var(--accent)}
 
 .tab-bar{display:flex;gap:2px;padding:10px 16px 0;background:var(--panel);
-  border-bottom:1px solid var(--border);overflow-x:auto}
+  border-bottom:1px solid var(--border);overflow-x:auto;flex-wrap:wrap}
 .tab{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
   padding:6px 16px 8px;border:none;border-radius:4px 4px 0 0;background:transparent;
   color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
   transition:color .15s,background .15s}
 .tab:hover{color:var(--text);background:var(--panel2)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab.tag-hidden{display:none}
 .content{padding:16px}
 .panel.hidden{display:none}.panel.visible{display:block}
 .card-header{display:flex;justify-content:space-between;align-items:flex-start;
@@ -82,6 +83,32 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
 .copy-btn:hover{color:var(--text);border-color:var(--text)}
 .copy-btn.copied{color:var(--green);border-color:var(--green)}
+.month-header{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--sub);
+  padding:10px 0 6px;border-bottom:1px solid var(--border);
+  margin-bottom:4px;margin-top:16px}
+.month-header:first-child{margin-top:0}
+.archive-section{margin-top:28px;border-top:1px solid var(--border);padding-top:16px}
+.archive-header{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--sub);margin-bottom:10px}
+.archive-card{display:flex;align-items:center;gap:12px;padding:8px 12px;
+  background:var(--panel);border:1px solid var(--border);border-radius:6px;
+  margin-bottom:6px;opacity:0.55}
+.archive-ticker{font-family:var(--mono);font-size:12px;font-weight:600;
+  color:var(--sub);min-width:80px}
+.archive-label{font-size:12px;color:var(--sub);flex:1}
+.archive-date{font-family:var(--mono);font-size:10px;color:var(--sub)}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tag-pill{font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:20px;
+  background:var(--panel2);color:var(--sub);border:1px solid var(--border)}
+.tag-filter-bar{padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.tag-filter-label{font-family:var(--mono);font-size:10px;color:var(--sub);white-space:nowrap}
+.tag-filter-btn{font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;color:var(--sub);
+  cursor:pointer;transition:all .15s;white-space:nowrap}
+.tag-filter-btn:hover{color:var(--text);border-color:var(--text)}
+.tag-filter-btn.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -92,9 +119,11 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
     <a href="manage.html">Manage</a>
   </nav>
 </header>
-<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">C6L.SI</button><button class="tab" onclick="switchTab(1)" id="tab-1">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2">IAL.L</button><button class="tab" onclick="switchTab(3)" id="tab-3">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10">IBN.BA</button></div>
+<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">C6L.SI</button><button class="tab" onclick="switchTab(1)" id="tab-1">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2">IAG.L</button><button class="tab" onclick="switchTab(3)" id="tab-3">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10">IBN.BA</button></div>
+
 <div class="content">
-<div class="panel visible" id="panel-0">
+<div class="month-header" data-month="2026-02">February 2026</div>
+<div class="panel visible" id="panel-0" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">C6L.SI</span>
@@ -106,6 +135,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(0)" id="embedtoggle-0">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-0" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -128,7 +158,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-0"></div>
   <div class="vol-wrap"   id="vol-0"></div>
 </div>
-<div class="panel hidden" id="panel-1">
+<div class="panel hidden" id="panel-1" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">0293.HK</span>
@@ -140,6 +170,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(1)" id="embedtoggle-1">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-1" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -162,10 +193,10 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-1"></div>
   <div class="vol-wrap"   id="vol-1"></div>
 </div>
-<div class="panel hidden" id="panel-2">
+<div class="panel hidden" id="panel-2" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
-      <span class="ticker-badge">IAL.L</span>
+      <span class="ticker-badge">IAG.L</span>
       <span class="label-text">International Consolidated Airlines Group</span>
     </div>
     <div class="meta-row">
@@ -174,6 +205,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(2)" id="embedtoggle-2">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-2" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -196,7 +228,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-2"></div>
   <div class="vol-wrap"   id="vol-2"></div>
 </div>
-<div class="panel hidden" id="panel-3">
+<div class="panel hidden" id="panel-3" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">RYA.IR</span>
@@ -208,6 +240,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(3)" id="embedtoggle-3">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-3" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -230,7 +263,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-3"></div>
   <div class="vol-wrap"   id="vol-3"></div>
 </div>
-<div class="panel hidden" id="panel-4">
+<div class="panel hidden" id="panel-4" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">AAL</span>
@@ -242,6 +275,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(4)" id="embedtoggle-4">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-4" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -264,7 +298,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-4"></div>
   <div class="vol-wrap"   id="vol-4"></div>
 </div>
-<div class="panel hidden" id="panel-5">
+<div class="panel hidden" id="panel-5" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">012450.KS</span>
@@ -276,6 +310,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(5)" id="embedtoggle-5">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-5" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -298,7 +333,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-5"></div>
   <div class="vol-wrap"   id="vol-5"></div>
 </div>
-<div class="panel hidden" id="panel-6">
+<div class="panel hidden" id="panel-6" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">RR.L</span>
@@ -310,6 +345,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(6)" id="embedtoggle-6">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-6" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -332,7 +368,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-6"></div>
   <div class="vol-wrap"   id="vol-6"></div>
 </div>
-<div class="panel hidden" id="panel-7">
+<div class="panel hidden" id="panel-7" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">AIR.PA</span>
@@ -344,6 +380,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(7)" id="embedtoggle-7">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-7" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -366,7 +403,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-7"></div>
   <div class="vol-wrap"   id="vol-7"></div>
 </div>
-<div class="panel hidden" id="panel-8">
+<div class="panel hidden" id="panel-8" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">BA.L</span>
@@ -378,6 +415,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(8)" id="embedtoggle-8">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Related to Geopolitical risks</p>
   <div class="embed-bar" id="embedbar-8" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -400,7 +438,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-8"></div>
   <div class="vol-wrap"   id="vol-8"></div>
 </div>
-<div class="panel hidden" id="panel-9">
+<div class="panel hidden" id="panel-9" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">D05.SI</span>
@@ -412,6 +450,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(9)" id="embedtoggle-9">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Regional bank performance</p>
   <div class="embed-bar" id="embedbar-9" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -434,7 +473,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="chart-wrap" id="chart-9"></div>
   <div class="vol-wrap"   id="vol-9"></div>
 </div>
-<div class="panel hidden" id="panel-10">
+<div class="panel hidden" id="panel-10" data-month="2026-02" data-tags="">
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">IBN.BA</span>
@@ -446,6 +485,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
       <button class="embed-toggle-btn" onclick="toggleEmbed(10)" id="embedtoggle-10">Notion embed URL</button>
     </div>
   </div>
+  
   <p class="thesis-text">Regional bank performance</p>
   <div class="embed-bar" id="embedbar-10" style="display:none">
     <span class="embed-label">Notion embed URL</span>
@@ -467,10 +507,12 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="leg-row" id="leg-10"></div>
   <div class="chart-wrap" id="chart-10"></div>
   <div class="vol-wrap"   id="vol-10"></div>
-</div></div>
+</div>
+
+</div>
 
 <script>
-const STOCKS    = [{"ticker": "C6L.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAL.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}];
+const STOCKS    = [{"ticker": "C6L.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAG.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}];
 const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
 const TODAY_STR = TODAY.toISOString().slice(0,10);
 
@@ -545,6 +587,41 @@ function toggleEmbed(i) {
   const visible = bar.style.display !== 'none';
   bar.style.display = visible ? 'none' : 'flex';
   btn.classList.toggle('active', !visible);
+}
+
+let activeTag = null;
+
+function filterTag(tag) {
+  activeTag = tag;
+  // Update filter button states
+  document.querySelectorAll('.tag-filter-btn').forEach(b => b.classList.remove('on'));
+  const btnId = tag ? 'tagbtn-'+tag : 'tagbtn-all';
+  const btn = document.getElementById(btnId);
+  if (btn) btn.classList.add('on');
+
+  // Show/hide tabs and month headers based on tag
+  const tabs    = document.querySelectorAll('.tab');
+  const panels  = document.querySelectorAll('.panel');
+  const headers = document.querySelectorAll('.month-header');
+
+  // Determine which panel indices are visible
+  const visibleMonths = new Set();
+  panels.forEach((p, i) => {
+    const tags = (p.dataset.tags || '').split(' ').filter(Boolean);
+    const show = !tag || tags.includes(tag);
+    tabs[i] && tabs[i].classList.toggle('tag-hidden', !show);
+    if (!show && p.classList.contains('visible')) {
+      // Current tab is hidden — find first visible tab
+      const firstVisible = [...tabs].findIndex(t => !t.classList.contains('tag-hidden'));
+      if (firstVisible >= 0) switchTab(firstVisible);
+    }
+    if (show) visibleMonths.add(p.dataset.month);
+  });
+
+  // Show/hide month headers
+  headers.forEach(h => {
+    h.style.display = (!tag || visibleMonths.has(h.dataset.month)) ? '' : 'none';
+  });
 }
 
 function switchTab(i) {
