@@ -286,9 +286,8 @@ function buildYaml(stocks){
   return out;
 }
 
-// ── Ticker search: Yahoo JSONP → dumbstockapi fallback ────────────────────────
+// ── Ticker search: Yahoo fetch → dumbstockapi fallback ───────────────────────
 const searchTimers = {};
-let _jsonpIdx = 0;
 
 function onTickerInput(i) {
   const q  = document.getElementById('f-ticker-'+i).value.trim();
@@ -298,80 +297,70 @@ function onTickerInput(i) {
   searchTimers[i] = setTimeout(() => doSearch(i, q), 350);
 }
 
-function doSearch(i, q) {
+async function doSearch(i, q) {
   const sr = document.getElementById('sr-'+i);
   sr.style.display='block';
   sr.innerHTML='<div class="search-loading">Searching…</div>';
-  tryYahoo(i, q, sr);
-}
 
-function tryYahoo(i, q, sr) {
-  const cbName = '__yq_' + (++_jsonpIdx);
-  const prev   = document.getElementById('yq-script');
-  if (prev) prev.remove();
-
-  // 3 sec timeout → fallback to dumbstockapi
-  const timer = setTimeout(() => {
-    delete window[cbName];
-    tryDumb(i, q, sr);
-  }, 3000);
-
-  window[cbName] = function(data) {
-    clearTimeout(timer);
-    delete window[cbName];
-    const items = (data?.ResultSet?.Result || [])
-      .filter(r => r.type === 'S' || r.type === 'E');
-    if (!items.length) { tryDumb(i, q, sr); return; }
-    sr.innerHTML = items.slice(0, 10).map(r => {
-      const sym  = (r.symbol   || '').replace(/'/g, "\'");
-      const name = (r.name     || '').replace(/'/g, "\'").slice(0, 45);
-      const exch = (r.exchDisp || r.exch || '').replace(/'/g, "\'");
-      const type = r.typeDisp  || '';
-      return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
-        <span class="si-ticker">${sym}</span>
-        <span class="si-name">${name}</span>
-        <span class="si-exch">${exch}${type ? ' · '+type : ''}</span>
-      </div>`;
-    }).join('');
-  };
-
-  const s  = document.createElement('script');
-  s.id     = 'yq-script';
-  s.src    = 'https://autoc.finance.yahoo.com/autoc?query='
-    + encodeURIComponent(q) + '&region=1&lang=en&callback=' + cbName;
-  s.onerror = () => { clearTimeout(timer); delete window[cbName]; tryDumb(i, q, sr); };
-  document.head.appendChild(s);
-}
-
-async function tryDumb(i, q, sr) {
+  // 1st: Yahoo Finance v1 search (CORS 허용)
   try {
-    const [r1, r2] = await Promise.allSettled([
-      fetch('https://dumbstockapi.com/stock?ticker_search=' + encodeURIComponent(q),
-        {signal: AbortSignal.timeout(4000)}),
-      fetch('https://dumbstockapi.com/stock?name_search='   + encodeURIComponent(q),
-        {signal: AbortSignal.timeout(4000)}),
-    ]);
-    const seen = new Set(), results = [];
-    for (const p of [r1, r2]) {
-      if (p.status !== 'fulfilled' || !p.value.ok) continue;
-      for (const r of await p.value.json()) {
-        if (!seen.has(r.ticker)) { seen.add(r.ticker); results.push(r); }
+    const res = await fetch(
+      'https://query2.finance.yahoo.com/v1/finance/search?q='
+      + encodeURIComponent(q)
+      + '&quotesCount=10&newsCount=0&enableFuzzyQuery=true',
+      {signal: AbortSignal.timeout(4000), headers: {'Accept':'application/json'}}
+    );
+    if (res.ok) {
+      const data   = await res.json();
+      const quotes = (data?.quotes || [])
+        .filter(r => r.quoteType === 'EQUITY' || r.quoteType === 'ETF');
+      if (quotes.length) {
+        sr.innerHTML = quotes.slice(0,10).map(r => {
+          const sym  = (r.symbol  || '').replace(/'/g,"\'");
+          const name = (r.longname||r.shortname||'').replace(/'/g,"\'").slice(0,45);
+          const exch = (r.exchDisp||r.exchange||'').replace(/'/g,"\'");
+          const type = r.quoteType === 'ETF' ? ' · ETF' : '';
+          return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
+            <span class="si-ticker">${sym}</span>
+            <span class="si-name">${name}</span>
+            <span class="si-exch">${exch}${type}</span>
+          </div>`;
+        }).join('');
+        return;
       }
     }
-    if (!results.length) { sr.innerHTML = manualEntry(i, q); return; }
-    sr.innerHTML = results.slice(0, 10).map(r => {
-      const sym  = (r.ticker   || '').replace(/'/g, "\'");
-      const name = (r.name     || '').replace(/'/g, "\'").slice(0, 45);
-      const exch =  r.exchange || '';
-      return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
-        <span class="si-ticker">${sym}</span>
-        <span class="si-name">${name}</span>
-        <span class="si-exch">${exch}</span>
-      </div>`;
-    }).join('');
-  } catch(e) {
-    sr.innerHTML = manualEntry(i, q);
-  }
+  } catch(e) {}
+
+  // 2nd: dumbstockapi fallback
+  try {
+    const [r1, r2] = await Promise.allSettled([
+      fetch('https://dumbstockapi.com/stock?ticker_search='+encodeURIComponent(q),
+        {signal:AbortSignal.timeout(4000)}),
+      fetch('https://dumbstockapi.com/stock?name_search='+encodeURIComponent(q),
+        {signal:AbortSignal.timeout(4000)}),
+    ]);
+    const seen=new Set(), results=[];
+    for (const p of [r1,r2]) {
+      if (p.status!=='fulfilled'||!p.value.ok) continue;
+      for (const r of await p.value.json())
+        if (!seen.has(r.ticker)) { seen.add(r.ticker); results.push(r); }
+    }
+    if (results.length) {
+      sr.innerHTML = results.slice(0,10).map(r => {
+        const sym  = (r.ticker  ||'').replace(/'/g,"\'");
+        const name = (r.name    ||'').replace(/'/g,"\'").slice(0,45);
+        const exch =  r.exchange||'';
+        return `<div class="search-item" onclick="selectTicker(${i},'${sym}','${name}','${exch}')">
+          <span class="si-ticker">${sym}</span>
+          <span class="si-name">${name}</span>
+          <span class="si-exch">${exch}</span>
+        </div>`;
+      }).join('');
+      return;
+    }
+  } catch(e) {}
+
+  sr.innerHTML = manualEntry(i, q);
 }
 
 function manualEntry(i, q) {
