@@ -174,23 +174,56 @@ html.dark{
 }
 
 /* ── Embed mode ── */
-body.embed-mode{background:transparent}
-body.embed-mode .content{padding:0}
+body.embed-mode{background:transparent;overflow:hidden}
+body.embed-mode html{overflow:hidden}
+body.embed-mode .content{padding:0;height:100vh;overflow:hidden}
 body.embed-mode .month-header{display:none}
-body.embed-mode .panel.visible{display:flex;flex-direction:column;height:100vh;min-height:400px}
-body.embed-mode .chart-wrap{flex:1;height:auto;min-height:200px;border-radius:0}
-body.embed-mode .vol-wrap{height:72px;flex-shrink:0;border-radius:0}
-body.embed-mode .ctrl-row{padding:6px 10px;margin-bottom:6px}
-body.embed-mode .card-header{padding:8px 10px 0}
-body.embed-mode .thesis-text{padding:4px 10px;margin-bottom:4px}
-body.embed-mode .tag-row{padding:0 10px;margin-bottom:4px}
-body.embed-mode .price-stat-row{padding:0 10px;margin-bottom:4px}
-body.embed-mode .leg-row{padding:0 10px;margin-bottom:4px}
+body.embed-mode .panel.visible{
+  display:grid;
+  grid-template-rows:auto auto auto auto auto 1fr auto;
+  height:100vh;overflow:hidden;gap:0}
+/* card-header: compact */
+body.embed-mode .card-header{padding:6px 10px 4px;flex-shrink:0}
+body.embed-mode .ticker-badge{font-size:13px}
+body.embed-mode .label-text{font-size:11px}
+body.embed-mode .meta-item{font-size:9px}
+body.embed-mode .updated{display:none}
+body.embed-mode .embed-toggle-btn{display:none}
+/* tags: one line, tiny */
+body.embed-mode .tag-row{padding:0 10px;margin-bottom:2px;flex-shrink:0}
+body.embed-mode .tag-pill{font-size:9px;padding:1px 6px}
+/* thesis: hidden in embed (saves space) */
+body.embed-mode .thesis-text{display:none}
+/* price stats: single compact row */
+body.embed-mode .price-stat-row{
+  padding:2px 10px;margin-bottom:2px;flex-shrink:0;gap:6px}
+body.embed-mode .pstat{padding:3px 8px}
+body.embed-mode .pstat-label{font-size:8px}
+body.embed-mode .pstat-value{font-size:12px}
+/* embed bar: hidden */
+body.embed-mode .embed-bar{display:none!important}
+/* sliders: single compact row */
+body.embed-mode .ctrl-row{
+  padding:4px 10px;margin-bottom:2px;gap:10px;flex-shrink:0}
+body.embed-mode .cg label{font-size:9px}
+body.embed-mode .cg input[type=range]{width:90px}
+body.embed-mode .cv{font-size:10px}
+/* legend: compact */
+body.embed-mode .leg-row{padding:0 10px;margin-bottom:3px;flex-shrink:0;gap:8px}
+body.embed-mode .leg{font-size:9px}
+/* chart: fills ALL remaining space */
+body.embed-mode .chart-wrap{
+  flex:1;height:auto!important;min-height:0;
+  border-radius:0;overflow:hidden}
+/* volume: fixed small strip */
+body.embed-mode .vol-wrap{
+  height:52px!important;flex-shrink:0;border-radius:0}
 @media(max-width:640px){
-  body.embed-mode .ctrl-row{gap:8px;padding:5px 8px}
-  body.embed-mode .cg input[type=range]{width:70px}
-  body.embed-mode .chart-wrap{min-height:160px}
-  body.embed-mode .vol-wrap{height:55px}
+  body.embed-mode .price-stat-row{flex-wrap:nowrap;overflow-x:auto}
+  body.embed-mode .ctrl-row{gap:6px}
+  body.embed-mode .cg input[type=range]{width:60px}
+  body.embed-mode .chart-wrap{min-height:120px}
+  body.embed-mode .vol-wrap{height:40px!important}
 }
 </style>
 </head>
