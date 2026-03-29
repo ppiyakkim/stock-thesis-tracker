@@ -92,7 +92,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
     <a href="manage.html">Manage</a>
   </nav>
 </header>
-<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">AAPL</button><button class="tab" onclick="switchTab(1)" id="tab-1">TSLA</button><button class="tab" onclick="switchTab(2)" id="tab-2">C6I.SI</button></div>
+<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">AAPL</button><button class="tab" onclick="switchTab(1)" id="tab-1">TSLA</button><button class="tab" onclick="switchTab(2)" id="tab-2">C6L.SI</button></div>
 <div class="content">
 <div class="panel visible" id="panel-0">
   <div class="card-header">
@@ -165,7 +165,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 <div class="panel hidden" id="panel-2">
   <div class="card-header">
     <div class="ch-left">
-      <span class="ticker-badge">C6I.SI</span>
+      <span class="ticker-badge">C6L.SI</span>
       <span class="label-text">Singapore Airlines (SIA)</span>
     </div>
     <div class="meta-row">
@@ -198,7 +198,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 </div></div>
 
 <script>
-const STOCKS    = [{"ticker": "AAPL", "report_date": "2026-02-01", "label": "Apple Q1 FY2026 Earnings", "thesis": "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.", "default_pre": 60, "default_post": 60}, {"ticker": "TSLA", "report_date": "2026-01-29", "label": "Tesla Q4 FY2025 Earnings", "thesis": "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.", "default_pre": 60, "default_post": 60}, {"ticker": "C6I.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Geopolitical risk rises and there are dips in SIA", "default_pre": 100, "default_post": 60}];
+const STOCKS    = [{"ticker": "AAPL", "report_date": "2026-02-01", "label": "Apple Q1 FY2026 Earnings", "thesis": "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.", "default_pre": 60, "default_post": 60}, {"ticker": "TSLA", "report_date": "2026-01-29", "label": "Tesla Q4 FY2025 Earnings", "thesis": "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.", "default_pre": 60, "default_post": 60}, {"ticker": "C6L.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Geopolitical risk rises and there are dips in SIA", "default_pre": 100, "default_post": 60}];
 const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
 const TODAY_STR = TODAY.toISOString().slice(0,10);
 
