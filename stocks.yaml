@@ -1,7 +1,7 @@
 # stocks.yaml — managed via /manage
 stocks:
   - ticker: C6L.SI
-    report_date: "2026-03-01"
+    report_date: "2026-03-02"
     label: "Singapore Airlines (SIA)"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
@@ -66,3 +66,10 @@ stocks:
     thesis: "Regional bank performance"
     default_pre: 100
     default_post: 60
+  - ticker: CPNG
+    report_date: "2025-10-30"
+    label: "Coupang Inc."
+    thesis: ""
+    default_pre: 100
+    default_post: 200
+    tags: ["korea", "retail", "e-commerce"]
