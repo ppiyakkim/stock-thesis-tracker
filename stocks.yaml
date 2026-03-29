@@ -83,4 +83,13 @@ stocks:
     thesis: ""
     default_pre: 100
     default_post: 200
+    target_price: 40
     tags: ["korea", "retail", "e-commerce"]
+  - ticker: RMS.PA
+    report_date: "2026-03-20"
+    label: "Hermes International SA"
+    thesis: ""
+    default_pre: 100
+    default_post: 180
+    target_price: 1574
+    tags: ["europe", "luxury", "consumer", "value"]
