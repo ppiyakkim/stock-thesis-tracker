@@ -92,7 +92,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
     <a href="manage.html">Manage</a>
   </nav>
 </header>
-<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">AAPL</button><button class="tab" onclick="switchTab(1)" id="tab-1">TSLA</button><button class="tab" onclick="switchTab(2)" id="tab-2">MSFT</button></div>
+<div class="tab-bar"><button class="tab  active" onclick="switchTab(0)" id="tab-0">AAPL</button><button class="tab" onclick="switchTab(1)" id="tab-1">TSLA</button><button class="tab" onclick="switchTab(2)" id="tab-2">C6I.SI</button></div>
 <div class="content">
 <div class="panel visible" id="panel-0">
   <div class="card-header">
@@ -165,16 +165,16 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 <div class="panel hidden" id="panel-2">
   <div class="card-header">
     <div class="ch-left">
-      <span class="ticker-badge">MSFT</span>
-      <span class="label-text">Microsoft Q2 FY2026 Earnings</span>
+      <span class="ticker-badge">C6I.SI</span>
+      <span class="label-text">Singapore Airlines (SIA)</span>
     </div>
     <div class="meta-row">
-      <span class="meta-item">Report&nbsp;<b>2026-01-29</b></span>
+      <span class="meta-item">Report&nbsp;<b>2026-02-28</b></span>
       <span class="meta-item updated" id="updated-2"></span>
       <button class="embed-toggle-btn" onclick="toggleEmbed(2)" id="embedtoggle-2">Notion embed URL</button>
     </div>
   </div>
-  <p class="thesis-text">Azure growth acceleration; Copilot monetisation. Long: enterprise AI distribution moat is underpriced.</p>
+  <p class="thesis-text">Geopolitical risk rises and there are dips in SIA</p>
   <div class="embed-bar" id="embedbar-2" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-2"></span>
@@ -183,8 +183,8 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
   <div class="ctrl-row">
     <div class="cg">
       <label>Past days</label>
-      <input type="range" id="sl-pre-2" min="10" max="365" step="5" value="60">
-      <span class="cv" id="cv-pre-2">60d</span>
+      <input type="range" id="sl-pre-2" min="10" max="365" step="5" value="100">
+      <span class="cv" id="cv-pre-2">100d</span>
     </div>
     <div class="cg">
       <label>Future days</label>
@@ -198,7 +198,7 @@ html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-hei
 </div></div>
 
 <script>
-const STOCKS    = [{"ticker": "AAPL", "report_date": "2026-02-01", "label": "Apple Q1 FY2026 Earnings", "thesis": "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.", "default_pre": 60, "default_post": 60}, {"ticker": "TSLA", "report_date": "2026-01-29", "label": "Tesla Q4 FY2025 Earnings", "thesis": "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.", "default_pre": 60, "default_post": 60}, {"ticker": "MSFT", "report_date": "2026-01-29", "label": "Microsoft Q2 FY2026 Earnings", "thesis": "Azure growth acceleration; Copilot monetisation. Long: enterprise AI distribution moat is underpriced.", "default_pre": 60, "default_post": 60}];
+const STOCKS    = [{"ticker": "AAPL", "report_date": "2026-02-01", "label": "Apple Q1 FY2026 Earnings", "thesis": "Services revenue beat; iPhone China risk flagged. Long: services attach rate expands, hardware margin floor higher than consensus.", "default_pre": 60, "default_post": 60}, {"ticker": "TSLA", "report_date": "2026-01-29", "label": "Tesla Q4 FY2025 Earnings", "thesis": "Margins recovered; next-gen platform ramp in focus. Long: energy storage becoming meaningful second business line.", "default_pre": 60, "default_post": 60}, {"ticker": "C6I.SI", "report_date": "2026-02-28", "label": "Singapore Airlines (SIA)", "thesis": "Geopolitical risk rises and there are dips in SIA", "default_pre": 100, "default_post": 60}];
 const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
 const TODAY_STR = TODAY.toISOString().slice(0,10);
 
