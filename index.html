@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1"/>
 <title>Stock Thesis Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -159,13 +159,37 @@ html.dark{
   .vol-wrap{height:70px}
   .tab-bar{padding:6px 10px 0;gap:1px}
   .tab{font-size:10px;padding:5px 10px 6px}
-  .month-tab{font-size:9px;padding:5px 8px 6px;margin-right:2px}
   .tag-filter-bar{padding:8px 10px;gap:6px}
   .fgrid{grid-template-columns:1fr 1fr!important}
+  .price-stat-row{gap:8px}
+  .pstat{padding:5px 9px}
+  .pstat-value{font-size:12px}
 }
 @media(max-width:400px){
   .fgrid{grid-template-columns:1fr!important}
   .cg{flex-wrap:wrap}
+  .chart-wrap{height:220px}
+  .vol-wrap{height:55px}
+  .pstat-value{font-size:11px}
+}
+
+/* ── Embed mode ── */
+body.embed-mode{background:transparent}
+body.embed-mode .content{padding:0}
+body.embed-mode .panel.visible{display:flex;flex-direction:column;height:100vh;min-height:400px}
+body.embed-mode .chart-wrap{flex:1;height:auto;min-height:200px;border-radius:0}
+body.embed-mode .vol-wrap{height:72px;flex-shrink:0;border-radius:0}
+body.embed-mode .ctrl-row{padding:6px 10px;margin-bottom:6px}
+body.embed-mode .card-header{padding:8px 10px 0}
+body.embed-mode .thesis-text{padding:4px 10px;margin-bottom:4px}
+body.embed-mode .tag-row{padding:0 10px;margin-bottom:4px}
+body.embed-mode .price-stat-row{padding:0 10px;margin-bottom:4px}
+body.embed-mode .leg-row{padding:0 10px;margin-bottom:4px}
+@media(max-width:640px){
+  body.embed-mode .ctrl-row{gap:8px;padding:5px 8px}
+  body.embed-mode .cg input[type=range]{width:70px}
+  body.embed-mode .chart-wrap{min-height:160px}
+  body.embed-mode .vol-wrap{height:55px}
 }
 </style>
 </head>
@@ -700,11 +724,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const embedMode   = params.get('embed') === '1';
 
   if (embedMode) {
+    document.body.classList.add('embed-mode');
     document.querySelector('.site-header').style.display = 'none';
     document.querySelector('.tab-bar').style.display     = 'none';
     const tfb = document.querySelector('.tag-filter-bar');
     if (tfb) tfb.style.display = 'none';
     document.querySelectorAll('.embed-bar').forEach(el => el.style.display = 'none');
+
+    // Auto-resize Plotly when iframe / container resizes
+    if (window.ResizeObserver) {
+      const ro = new ResizeObserver(() => {
+        document.querySelectorAll('.js-plotly-plot').forEach(el => {
+          try { Plotly.relayout(el, {}); } catch(e) {}
+        });
+      });
+      ro.observe(document.body);
+    }
   }
 
   // Populate embed URLs
