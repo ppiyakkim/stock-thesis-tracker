@@ -169,8 +169,13 @@ html.dark{
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☾ Dark</button>
   </nav>
 </header>
-<div class="tab-bar" id="tab-bar"><button class="month-tab" onclick="switchMonth('2026-03')" id="mtab-2026-03">Mar 2026</button><button class="tab active" onclick="switchTab(0)" id="tab-0" data-month="2026-03" data-tags="">C6L.SI</button><button class="month-tab" onclick="switchMonth('2026-02')" id="mtab-2026-02">Feb 2026</button><button class="tab" onclick="switchTab(1)" id="tab-1" data-month="2026-02" data-tags="">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2" data-month="2026-02" data-tags="">IAG.L</button><button class="tab" onclick="switchTab(3)" id="tab-3" data-month="2026-02" data-tags="">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4" data-month="2026-02" data-tags="">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5" data-month="2026-02" data-tags="">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6" data-month="2026-02" data-tags="">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7" data-month="2026-02" data-tags="">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8" data-month="2026-02" data-tags="">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9" data-month="2026-02" data-tags="">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10" data-month="2026-02" data-tags="">IBN.BA</button></div>
+<div class="tab-bar" id="tab-bar"><button class="month-tab" onclick="switchMonth('2026-03')" id="mtab-2026-03">Mar 2026</button><button class="tab active" onclick="switchTab(0)" id="tab-0" data-month="2026-03" data-tags="">C6L.SI</button><button class="month-tab" onclick="switchMonth('2026-02')" id="mtab-2026-02">Feb 2026</button><button class="tab" onclick="switchTab(1)" id="tab-1" data-month="2026-02" data-tags="">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2" data-month="2026-02" data-tags="">IAG.L</button><button class="tab" onclick="switchTab(3)" id="tab-3" data-month="2026-02" data-tags="">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4" data-month="2026-02" data-tags="">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5" data-month="2026-02" data-tags="">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6" data-month="2026-02" data-tags="">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7" data-month="2026-02" data-tags="">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8" data-month="2026-02" data-tags="">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9" data-month="2026-02" data-tags="">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10" data-month="2026-02" data-tags="">IBN.BA</button><button class="month-tab" onclick="switchMonth('2025-10')" id="mtab-2025-10">Oct 2025</button><button class="tab" onclick="switchTab(11)" id="tab-11" data-month="2025-10" data-tags="korea retail e-commerce">CPNG</button></div>
 
+<div class="tag-filter-bar">
+  <span class="tag-filter-label">Filter</span>
+  <button class="tag-filter-btn on" onclick="filterTag(null)" id="tagbtn-all">All</button>
+  <button class="tag-filter-btn" onclick="filterTag('e-commerce')" id="tagbtn-e-commerce">e-commerce</button><button class="tag-filter-btn" onclick="filterTag('korea')" id="tagbtn-korea">korea</button><button class="tag-filter-btn" onclick="filterTag('retail')" id="tagbtn-retail">retail</button>
+</div>
 <div class="content">
 <div class="month-header" data-month="2026-03">March 2026</div>
 <div class="panel visible" id="panel-0" data-month="2026-03" data-tags="">
@@ -180,7 +185,7 @@ html.dark{
       <span class="label-text">Singapore Airlines (SIA)</span>
     </div>
     <div class="meta-row">
-      <span class="meta-item">Report&nbsp;<b>2026-03-01</b></span>
+      <span class="meta-item">Report&nbsp;<b>2026-03-02</b></span>
       <span class="meta-item updated" id="updated-0"></span>
       <button class="embed-toggle-btn" onclick="toggleEmbed(0)" id="embedtoggle-0">Notion embed URL</button>
     </div>
@@ -557,12 +562,47 @@ html.dark{
   <div class="leg-row" id="leg-10"></div>
   <div class="chart-wrap" id="chart-10"></div>
   <div class="vol-wrap"   id="vol-10"></div>
+</div><div class="month-header" data-month="2025-10">October 2025</div>
+<div class="panel hidden" id="panel-11" data-month="2025-10" data-tags="korea retail e-commerce">
+  <div class="card-header">
+    <div class="ch-left">
+      <span class="ticker-badge">CPNG</span>
+      <span class="label-text">Coupang Inc.</span>
+    </div>
+    <div class="meta-row">
+      <span class="meta-item">Report&nbsp;<b>2025-10-30</b></span>
+      <span class="meta-item updated" id="updated-11"></span>
+      <button class="embed-toggle-btn" onclick="toggleEmbed(11)" id="embedtoggle-11">Notion embed URL</button>
+    </div>
+  </div>
+  <div class="tag-row"><span class="tag-pill">korea</span><span class="tag-pill">retail</span><span class="tag-pill">e-commerce</span></div>
+  
+  <div class="embed-bar" id="embedbar-11" style="display:none">
+    <span class="embed-label">Notion embed URL</span>
+    <span class="embed-url" id="embedurl-11"></span>
+    <button class="copy-btn" id="copybtn-11" onclick="copyEmbed(11)">Copy</button>
+  </div>
+  <div class="ctrl-row">
+    <div class="cg">
+      <label>Past days</label>
+      <input type="range" id="sl-pre-11" min="10" max="365" step="5" value="100">
+      <span class="cv" id="cv-pre-11">100d</span>
+    </div>
+    <div class="cg">
+      <label>Future days</label>
+      <input type="range" id="sl-post-11" min="10" max="365" step="5" value="200">
+      <span class="cv" id="cv-post-11">200d</span>
+    </div>
+  </div>
+  <div class="leg-row" id="leg-11"></div>
+  <div class="chart-wrap" id="chart-11"></div>
+  <div class="vol-wrap"   id="vol-11"></div>
 </div>
 
 </div>
 
 <script>
-const STOCKS    = [{"ticker": "C6L.SI", "report_date": "2026-03-01", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAG.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}];
+const STOCKS    = [{"ticker": "C6L.SI", "report_date": "2026-03-02", "label": "Singapore Airlines (SIA)", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "0293.HK", "report_date": "2026-02-28", "label": "Cathay Pacific Airways", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "IAG.L", "report_date": "2026-02-28", "label": "International Consolidated Airlines Group", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RYA.IR", "report_date": "2026-02-28", "label": "Ryanair Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AAL", "report_date": "2026-02-28", "label": "American Airlines Group, Inc.", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "012450.KS", "report_date": "2026-02-28", "label": "Hanwha Aerospace", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "RR.L", "report_date": "2026-02-28", "label": "Rolls-Royce Holdings plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "AIR.PA", "report_date": "2026-02-28", "label": "Airbus SE", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "BA.L", "report_date": "2026-02-28", "label": "BAE Systems plc", "thesis": "Related to Geopolitical risks", "default_pre": 100, "default_post": 60}, {"ticker": "D05.SI", "report_date": "2026-02-28", "label": "DBS Group Holdings Ltd", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "IBN.BA", "report_date": "2026-02-28", "label": "ICICI Bank Limited", "thesis": "Regional bank performance", "default_pre": 100, "default_post": 60}, {"ticker": "CPNG", "report_date": "2025-10-30", "label": "Coupang Inc.", "thesis": "", "default_pre": 100, "default_post": 200, "tags": ["korea", "retail", "e-commerce"]}];
 const TODAY     = new Date(); TODAY.setHours(0,0,0,0);
 const TODAY_STR = TODAY.toISOString().slice(0,10);
 
