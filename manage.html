@@ -238,7 +238,7 @@ function makeCard(s,i){
         <button class="btn-dl" onclick="deleteCard(${i})">Delete</button>
       </div>
     </div>
-    <div class="fgrid">
+    <div class="fgrid" style="grid-template-columns:repeat(5,minmax(0,1fr))">
       <div class="field search-wrap">
         <label>Ticker <span class="req">*</span></label>
         <input id="f-ticker-${i}" value="${s.ticker||''}" autocomplete="off"
@@ -252,6 +252,8 @@ function makeCard(s,i){
         <input id="f-pre-${i}" type="number" min="10" max="365" value="${s.default_pre||60}"></div>
       <div class="field"><label>Future days (default)</label>
         <input id="f-post-${i}" type="number" min="10" max="365" value="${s.default_post||60}"></div>
+      <div class="field"><label>Target price <span style="color:var(--sub);font-weight:400">(optional)</span></label>
+        <input id="f-tp-${i}" type="number" step="0.01" min="0" placeholder="e.g. 250.00" value="${s.target_price||''}"></div>
     </div>
     <div class="field" style="margin-bottom:10px"><label>Label</label>
       <input id="f-label-${i}" value="${s.label||''}"></div>
@@ -279,6 +281,7 @@ function saveCard(i){
     thesis:       document.getElementById('f-thesis-'+i).value.trim(),
     default_pre:  parseInt(document.getElementById('f-pre-' +i).value)||60,
     default_post: parseInt(document.getElementById('f-post-'+i).value)||60,
+    target_price: parseFloat(document.getElementById('f-tp-'+i).value)||null,
   };
   save(stocks);
   document.getElementById('mt-'+i).textContent=ticker;
@@ -374,6 +377,7 @@ function buildYaml(stocks){
     out+=`    thesis: "${esc(s.thesis)}"\n`;
     out+=`    default_pre: ${s.default_pre||60}\n`;
     out+=`    default_post: ${s.default_post||60}\n`;
+    if (s.target_price) out+=`    target_price: ${s.target_price}\n`;
     if (s.tags && s.tags.length) out+=`    tags: [${s.tags.map(t=>'"'+t+'"').join(', ')}]\n`;
     if (s.archived) out+=`    archived: true\n`;
   });

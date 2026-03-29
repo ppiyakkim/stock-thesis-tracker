@@ -120,15 +120,24 @@ html.dark{
   --green:#00e5a0;--red:#ff4d6a;--orange:#f77f4f;
 }
 
-/* ── Month group tabs ── */
-.month-tab{font-family:var(--mono);font-size:10px;font-weight:600;
-  letter-spacing:.1em;text-transform:uppercase;padding:6px 14px 8px;
-  border:none;border-radius:4px 4px 0 0;background:var(--panel2);
-  color:var(--sub);cursor:pointer;border-bottom:2px solid transparent;
-  white-space:nowrap;transition:all .15s;margin-right:4px}
-.month-tab:hover{color:var(--text)}
-.month-tab.active{background:var(--panel);color:var(--accent);border-bottom-color:var(--accent)}
-.month-tab.hidden{display:none}
+/* ── Month dropdown ── */
+.month-select{font-family:var(--mono);font-size:11px;font-weight:600;
+  letter-spacing:.06em;padding:5px 10px;border-radius:4px;
+  border:1px solid var(--border);background:var(--panel2);color:var(--text);
+  cursor:pointer;outline:none;margin-right:8px;transition:border .15s}
+.month-select:hover{border-color:var(--accent)}
+.month-select:focus{border-color:var(--accent)}
+
+/* ── Price stat row ── */
+.price-stat-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px;
+  font-family:var(--mono);font-size:11px}
+.pstat{padding:6px 12px;border-radius:6px;background:var(--panel);
+  border:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.pstat-label{font-size:9px;color:var(--sub);letter-spacing:.06em;text-transform:uppercase}
+.pstat-value{font-size:14px;font-weight:600;color:var(--text)}
+.pstat-value.up{color:var(--green)}
+.pstat-value.dn{color:var(--red)}
+.pstat-value.neutral{color:var(--sub)}
 
 /* ── Theme toggle ── */
 .theme-toggle{font-family:var(--mono);font-size:10px;padding:3px 10px;
@@ -169,7 +178,7 @@ html.dark{
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-btn">☾ Dark</button>
   </nav>
 </header>
-<div class="tab-bar" id="tab-bar"><button class="month-tab" onclick="switchMonth('2026-03')" id="mtab-2026-03">Mar 2026</button><button class="tab active" onclick="switchTab(0)" id="tab-0" data-month="2026-03" data-tags="">C6L.SI</button><button class="month-tab" onclick="switchMonth('2026-02')" id="mtab-2026-02">Feb 2026</button><button class="tab" onclick="switchTab(1)" id="tab-1" data-month="2026-02" data-tags="">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2" data-month="2026-02" data-tags="">IAG.L</button><button class="tab" onclick="switchTab(3)" id="tab-3" data-month="2026-02" data-tags="">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4" data-month="2026-02" data-tags="">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5" data-month="2026-02" data-tags="">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6" data-month="2026-02" data-tags="">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7" data-month="2026-02" data-tags="">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8" data-month="2026-02" data-tags="">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9" data-month="2026-02" data-tags="">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10" data-month="2026-02" data-tags="">IBN.BA</button><button class="month-tab" onclick="switchMonth('2025-10')" id="mtab-2025-10">Oct 2025</button><button class="tab" onclick="switchTab(11)" id="tab-11" data-month="2025-10" data-tags="korea retail e-commerce">CPNG</button></div>
+<div class="tab-bar" id="tab-bar"><select class="month-select" id="month-select" onchange="switchMonth(this.value)"><option value="2026-03">March 2026</option><option value="2026-02">February 2026</option><option value="2025-10">October 2025</option></select><button class="tab active" onclick="switchTab(0)" id="tab-0" data-month="2026-03" data-tags="">C6L.SI</button><button class="tab" onclick="switchTab(1)" id="tab-1" data-month="2026-02" data-tags="">0293.HK</button><button class="tab" onclick="switchTab(2)" id="tab-2" data-month="2026-02" data-tags="">IAG.L</button><button class="tab" onclick="switchTab(3)" id="tab-3" data-month="2026-02" data-tags="">RYA.IR</button><button class="tab" onclick="switchTab(4)" id="tab-4" data-month="2026-02" data-tags="">AAL</button><button class="tab" onclick="switchTab(5)" id="tab-5" data-month="2026-02" data-tags="">012450.KS</button><button class="tab" onclick="switchTab(6)" id="tab-6" data-month="2026-02" data-tags="">RR.L</button><button class="tab" onclick="switchTab(7)" id="tab-7" data-month="2026-02" data-tags="">AIR.PA</button><button class="tab" onclick="switchTab(8)" id="tab-8" data-month="2026-02" data-tags="">BA.L</button><button class="tab" onclick="switchTab(9)" id="tab-9" data-month="2026-02" data-tags="">D05.SI</button><button class="tab" onclick="switchTab(10)" id="tab-10" data-month="2026-02" data-tags="">IBN.BA</button><button class="tab" onclick="switchTab(11)" id="tab-11" data-month="2025-10" data-tags="korea retail e-commerce">CPNG</button></div>
 
 <div class="tag-filter-bar">
   <span class="tag-filter-label">Filter</span>
@@ -178,7 +187,7 @@ html.dark{
 </div>
 <div class="content">
 <div class="month-header" data-month="2026-03">March 2026</div>
-<div class="panel visible" id="panel-0" data-month="2026-03" data-tags="">
+<div class="panel visible" id="panel-0" data-month="2026-03" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">C6L.SI</span>
@@ -192,6 +201,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-0"></div>
   <div class="embed-bar" id="embedbar-0" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-0"></span>
@@ -213,7 +223,7 @@ html.dark{
   <div class="chart-wrap" id="chart-0"></div>
   <div class="vol-wrap"   id="vol-0"></div>
 </div><div class="month-header" data-month="2026-02">February 2026</div>
-<div class="panel hidden" id="panel-1" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-1" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">0293.HK</span>
@@ -227,6 +237,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-1"></div>
   <div class="embed-bar" id="embedbar-1" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-1"></span>
@@ -248,7 +259,7 @@ html.dark{
   <div class="chart-wrap" id="chart-1"></div>
   <div class="vol-wrap"   id="vol-1"></div>
 </div>
-<div class="panel hidden" id="panel-2" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-2" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">IAG.L</span>
@@ -262,6 +273,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-2"></div>
   <div class="embed-bar" id="embedbar-2" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-2"></span>
@@ -283,7 +295,7 @@ html.dark{
   <div class="chart-wrap" id="chart-2"></div>
   <div class="vol-wrap"   id="vol-2"></div>
 </div>
-<div class="panel hidden" id="panel-3" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-3" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">RYA.IR</span>
@@ -297,6 +309,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-3"></div>
   <div class="embed-bar" id="embedbar-3" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-3"></span>
@@ -318,7 +331,7 @@ html.dark{
   <div class="chart-wrap" id="chart-3"></div>
   <div class="vol-wrap"   id="vol-3"></div>
 </div>
-<div class="panel hidden" id="panel-4" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-4" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">AAL</span>
@@ -332,6 +345,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-4"></div>
   <div class="embed-bar" id="embedbar-4" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-4"></span>
@@ -353,7 +367,7 @@ html.dark{
   <div class="chart-wrap" id="chart-4"></div>
   <div class="vol-wrap"   id="vol-4"></div>
 </div>
-<div class="panel hidden" id="panel-5" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-5" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">012450.KS</span>
@@ -367,6 +381,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-5"></div>
   <div class="embed-bar" id="embedbar-5" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-5"></span>
@@ -388,7 +403,7 @@ html.dark{
   <div class="chart-wrap" id="chart-5"></div>
   <div class="vol-wrap"   id="vol-5"></div>
 </div>
-<div class="panel hidden" id="panel-6" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-6" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">RR.L</span>
@@ -402,6 +417,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-6"></div>
   <div class="embed-bar" id="embedbar-6" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-6"></span>
@@ -423,7 +439,7 @@ html.dark{
   <div class="chart-wrap" id="chart-6"></div>
   <div class="vol-wrap"   id="vol-6"></div>
 </div>
-<div class="panel hidden" id="panel-7" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-7" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">AIR.PA</span>
@@ -437,6 +453,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-7"></div>
   <div class="embed-bar" id="embedbar-7" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-7"></span>
@@ -458,7 +475,7 @@ html.dark{
   <div class="chart-wrap" id="chart-7"></div>
   <div class="vol-wrap"   id="vol-7"></div>
 </div>
-<div class="panel hidden" id="panel-8" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-8" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">BA.L</span>
@@ -472,6 +489,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Related to Geopolitical risks</p>
+  <div class="price-stat-row" id="pstat-8"></div>
   <div class="embed-bar" id="embedbar-8" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-8"></span>
@@ -493,7 +511,7 @@ html.dark{
   <div class="chart-wrap" id="chart-8"></div>
   <div class="vol-wrap"   id="vol-8"></div>
 </div>
-<div class="panel hidden" id="panel-9" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-9" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">D05.SI</span>
@@ -507,6 +525,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Regional bank performance</p>
+  <div class="price-stat-row" id="pstat-9"></div>
   <div class="embed-bar" id="embedbar-9" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-9"></span>
@@ -528,7 +547,7 @@ html.dark{
   <div class="chart-wrap" id="chart-9"></div>
   <div class="vol-wrap"   id="vol-9"></div>
 </div>
-<div class="panel hidden" id="panel-10" data-month="2026-02" data-tags="">
+<div class="panel hidden" id="panel-10" data-month="2026-02" data-tags="" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">IBN.BA</span>
@@ -542,6 +561,7 @@ html.dark{
   </div>
   
   <p class="thesis-text">Regional bank performance</p>
+  <div class="price-stat-row" id="pstat-10"></div>
   <div class="embed-bar" id="embedbar-10" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-10"></span>
@@ -563,7 +583,7 @@ html.dark{
   <div class="chart-wrap" id="chart-10"></div>
   <div class="vol-wrap"   id="vol-10"></div>
 </div><div class="month-header" data-month="2025-10">October 2025</div>
-<div class="panel hidden" id="panel-11" data-month="2025-10" data-tags="korea retail e-commerce">
+<div class="panel hidden" id="panel-11" data-month="2025-10" data-tags="korea retail e-commerce" >
   <div class="card-header">
     <div class="ch-left">
       <span class="ticker-badge">CPNG</span>
@@ -577,6 +597,7 @@ html.dark{
   </div>
   <div class="tag-row"><span class="tag-pill">korea</span><span class="tag-pill">retail</span><span class="tag-pill">e-commerce</span></div>
   
+  <div class="price-stat-row" id="pstat-11"></div>
   <div class="embed-bar" id="embedbar-11" style="display:none">
     <span class="embed-label">Notion embed URL</span>
     <span class="embed-url" id="embedurl-11"></span>
@@ -634,22 +655,25 @@ let activeMonth = null;
 
 function switchMonth(month) {
   activeMonth = month;
-  // Update month-tab highlight
-  document.querySelectorAll('.month-tab').forEach(b => {
-    b.classList.toggle('active', b.id === 'mtab-'+month);
-  });
+  // Sync dropdown value
+  const sel = document.getElementById('month-select');
+  if (sel) sel.value = month;
+
   // Show only tabs belonging to this month
   const allTabs = document.querySelectorAll('.tab');
   let firstVisible = -1;
-  allTabs.forEach((t, i) => {
-    const show = t.dataset.month === month && !t.classList.contains('tag-hidden');
-    t.classList.toggle('month-hidden', t.dataset.month !== month);
-    if (show && firstVisible === -1) firstVisible = i;
+  allTabs.forEach((t, idx) => {
+    const inMonth = t.dataset.month === month;
+    const inTag   = !t.classList.contains('tag-hidden');
+    t.classList.toggle('month-hidden', !inMonth);
+    if (inMonth && inTag && firstVisible === -1) firstVisible = idx;
   });
-  // Show/hide month headers in content
+
+  // Show/hide month headers
   document.querySelectorAll('.month-header').forEach(h => {
     h.style.display = h.dataset.month === month ? '' : 'none';
   });
+
   if (firstVisible >= 0) switchTab(firstVisible);
 }
 
@@ -690,15 +714,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) el.textContent = `${baseUrl}?ticker=${s.ticker}&embed=1`;
   });
 
-  // Activate first month tab
-  const firstMonthTab = document.querySelector('.month-tab');
-  if (firstMonthTab) {
-    firstMonthTab.classList.add('active');
-    activeMonth = firstMonthTab.id.replace('mtab-','');
-    // Hide all tabs not in this month initially
+  // Activate first month via dropdown
+  const sel = document.getElementById('month-select');
+  if (sel && sel.options.length > 0) {
+    activeMonth = sel.options[0].value;
+    sel.value   = activeMonth;
     document.querySelectorAll('.tab').forEach(t => {
-      if (t.dataset.month !== activeMonth)
-        t.classList.add('month-hidden');
+      if (t.dataset.month !== activeMonth) t.classList.add('month-hidden');
     });
     document.querySelectorAll('.month-header').forEach(h => {
       if (h.dataset.month !== activeMonth) h.style.display = 'none';
@@ -1030,6 +1052,72 @@ function redraw(i) {
 
   const upEl = document.getElementById('updated-'+i);
   if (upEl) upEl.textContent = 'Updated ' + json.generated;
+
+  // ── Price stats ────────────────────────────────────────────────────────
+  const statEl = document.getElementById('pstat-'+i);
+  if (!statEl) return;
+
+  const panelEl = document.getElementById('panel-'+i);
+  const target  = panelEl ? parseFloat(panelEl.dataset.target) : NaN;
+
+  // Report date price: closing price of the report date (or nearest trading day)
+  const reportRow = json.rows.find(r => r.date === json.report_date)
+    || json.rows.reduce((best, r) => {
+      const diff = Math.abs(new Date(r.date) - new Date(json.report_date));
+      return diff < Math.abs(new Date(best.date) - new Date(json.report_date)) ? r : best;
+    }, json.rows[0]);
+  const reportPrice = reportRow?.c ?? null;
+
+  // Today price: last available row
+  const todayRow   = [...json.rows].reverse().find(r => r.date <= TODAY_STR);
+  const todayPrice = todayRow?.c ?? null;
+
+  function pct(from, to) {
+    if (!from || !to) return null;
+    return ((to - from) / from * 100).toFixed(1);
+  }
+  function cls(v) { return v === null ? 'neutral' : parseFloat(v) >= 0 ? 'up' : 'dn'; }
+  function fmt(v) { return v === null ? '—' : (parseFloat(v) >= 0 ? '+' : '') + v + '%'; }
+  function fmtPx(v) { return v === null ? '—' : v.toFixed(2); }
+
+  let html = '';
+
+  // Always show: report price + today price + today vs report
+  const todayVsReport = pct(reportPrice, todayPrice);
+  html += `
+    <div class="pstat">
+      <span class="pstat-label">Report date close</span>
+      <span class="pstat-value neutral">${fmtPx(reportPrice)}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Current price</span>
+      <span class="pstat-value neutral">${fmtPx(todayPrice)}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Since report</span>
+      <span class="pstat-value ${cls(todayVsReport)}">${fmt(todayVsReport)}</span>
+    </div>`;
+
+  // If target price set: show upside from report + from today
+  if (!isNaN(target) && target > 0) {
+    const uptReport = pct(reportPrice, target);
+    const uptToday  = pct(todayPrice,  target);
+    html += `
+    <div class="pstat" style="border-color:var(--accent)">
+      <span class="pstat-label">Target</span>
+      <span class="pstat-value neutral">${target.toFixed(2)}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Upside from report</span>
+      <span class="pstat-value ${cls(uptReport)}">${fmt(uptReport)}</span>
+    </div>
+    <div class="pstat">
+      <span class="pstat-label">Upside from today</span>
+      <span class="pstat-value ${cls(uptToday)}">${fmt(uptToday)}</span>
+    </div>`;
+  }
+
+  statEl.innerHTML = html;
 }
 
 function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
