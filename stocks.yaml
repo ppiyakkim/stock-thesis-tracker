@@ -1,7 +1,7 @@
 # stocks.yaml — managed via /manage
 stocks:
   - ticker: C6L.SI
-    report_date: "2026-02-28"
+    report_date: "2026-03-01"
     label: "Singapore Airlines (SIA)"
     thesis: "Related to Geopolitical risks"
     default_pre: 100
