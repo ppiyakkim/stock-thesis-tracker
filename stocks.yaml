@@ -41,7 +41,7 @@ stocks:
     thesis: "Hanwha Aerospace stands as the premier Korean defence pure-play, leveraging exceptional earnings visibility from a massive order backlog and a unique geopolitical advantage to capture global export market share, justifying a structural accumulation stance on pullbacks despite its premium valuation."
     default_pre: 100
     default_post: 60
-    tags: ["defense", "kroea"]
+    tags: ["defense", "korea"]
   - ticker: RR.L
     report_date: "2026-02-28"
     label: "Rolls-Royce Holdings plc"
