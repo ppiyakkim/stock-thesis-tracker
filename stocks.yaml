@@ -3,49 +3,49 @@ stocks:
   - ticker: C6L.SI
     report_date: "2026-02-28"
     label: "Singapore Airlines (SIA)"
-    thesis: "Related to Geopolitical risks"
+    thesis: "Singapore Airlines (C6L) is the premier Asia-Pacific investment to capitalise on enduring market share gains from displaced Middle Eastern carriers, underpinned by resilient premium yields and a sector-leading balance sheet."
     default_pre: 100
     default_post: 60
     tags: ["singapore", "aviation", "value"]
   - ticker: 0293.HK
     report_date: "2026-02-28"
     label: "Cathay Pacific Airways"
-    thesis: "Related to Geopolitical risks"
+    thesis: "Cathay offers an asymmetric dual-catalyst opportunity driven by Middle Eastern carrier displacement and Chinese travel recovery, though its re-rating potential remains structurally discounted compared to SIA due to Hong Kong's geopolitical risk premium."
     default_pre: 100
     default_post: 60
     tags: ["hongkong", "aviation", "value"]
   - ticker: IAG.L
     report_date: "2026-02-28"
     label: "International Consolidated Airlines Group"
-    thesis: "Related to Geopolitical risks"
+    thesis: "IAG appears technically oversold amidst transient crude headwinds, offering an attractive recovery play anchored by its diversified multi-brand resilience and British Airways' structural, slot-constrained transatlantic pricing power."
     default_pre: 100
     default_post: 60
     tags: ["uk", "aviation"]
   - ticker: RYA.IR
     report_date: "2026-02-28"
     label: "Ryanair Holdings plc"
-    thesis: "Related to Geopolitical risks"
+    thesis: "Ryanair serves as the watchlist's highly defensible, structural hedge, offering an anomalous buying opportunity where its pure-play LCC model, robust fuel hedging, and minimal Middle East exposure insulate margins regardless of conflict duration."
     default_pre: 100
     default_post: 60
     tags: ["uk", "aviation"]
   - ticker: AAL
     report_date: "2026-02-28"
     label: "American Airlines Group, Inc."
-    thesis: "Related to Geopolitical risks"
+    thesis: "American Airlines presents a binary, high-leverage proposition, yet offers risk-tolerant investors an underappreciated risk-reward profile anchored by a highly insulated domestic revenue base, intra-Americas diversification, and advantageous structural fuel cost asymmetry."
     default_pre: 100
     default_post: 60
     tags: ["usa", "aviation"]
   - ticker: 012450.KS
     report_date: "2026-02-28"
     label: "Hanwha Aerospace"
-    thesis: "Related to Geopolitical risks"
+    thesis: "Hanwha Aerospace stands as the premier Korean defence pure-play, leveraging exceptional earnings visibility from a massive order backlog and a unique geopolitical advantage to capture global export market share, justifying a structural accumulation stance on pullbacks despite its premium valuation."
     default_pre: 100
     default_post: 60
     tags: ["defense", "kroea"]
   - ticker: RR.L
     report_date: "2026-02-28"
     label: "Rolls-Royce Holdings plc"
-    thesis: "Related to Geopolitical risks"
+    thesis: "Rolls-Royce presents a nuanced, partial defence play where near-term geopolitical tailwinds are captured primarily through its shorter-cycle Power Systems division, rather than core aerospace, supported by robust FY2025 financials and a strengthening land and naval order pipeline."
     default_pre: 100
     default_post: 60
     tags: ["defense", "uk"]
@@ -59,7 +59,7 @@ stocks:
   - ticker: BA.L
     report_date: "2026-03-18"
     label: "BAE Systems plc"
-    thesis: "1. Default Recipient of Europe's Defence Build-Up 2. Compounding Financials with Visibility Into the 2030s 3. Multi-Region Revenue Insulates Against Any Budget Cycle  Part of LBS Group Stock Pitch competition submission"
+    thesis: "BAE Systems offers a highly compelling buy with substantial valuation upside, serving as the structural default beneficiary of NATO's rearmament cycle underpinned by a massive £83.6 billion sole-source backlog and comprehensive multi-domain platform capabilities."
     default_pre: 100
     default_post: 60
     target_price: 3055
@@ -67,21 +67,21 @@ stocks:
   - ticker: D05.SI
     report_date: "2026-02-28"
     label: "DBS Group Holdings Ltd"
-    thesis: "Regional bank performance"
+    thesis: "DBS presents a compelling structural safe-haven play, pivoting from rate-driven earnings to wealth management fee growth fuelled by geopolitical capital inflows, while a supportive SGD macroeconomic environment and a robust capital return programme robustly defend the downside against NIM compression."
     default_pre: 100
     default_post: 60
     tags: ["singapore", "finance"]
   - ticker: IBN.BA
     report_date: "2026-02-28"
     label: "ICICI Bank Limited"
-    thesis: "Regional bank performance"
+    thesis: "ICICI Bank stands out as a highly insulated, rate-agnostic compounder, driven by India's robust, Fed-independent domestic credit boom and the bank's exceptional asset quality and loan momentum."
     default_pre: 100
     default_post: 60
     tags: ["india", "finance", "em"]
   - ticker: CPNG
     report_date: "2025-10-30"
     label: "Coupang Inc."
-    thesis: ""
+    thesis: "Driven by its unrivalled South Korean logistics moat and a highly sticky membership ecosystem, Coupang presents a compelling investment opportunity with a $40 target price as it leverages warehouse automation to boost margins and funds targeted expansion across Asia."
     default_pre: 100
     default_post: 200
     target_price: 40
