@@ -81,7 +81,7 @@ stocks:
   - ticker: CPNG
     report_date: "2025-10-30"
     label: "Coupang Inc."
-    thesis: "Driven by its unrivalled South Korean logistics moat and a highly sticky membership ecosystem, Coupang presents a compelling investment opportunity with a $40 target price as it leverages warehouse automation to boost margins and funds targeted expansion across Asia."
+    thesis: "Driven by its unrivalled South Korean logistics moat and a highly sticky membership ecosystem, Coupang presents a compelling investment opportunity with a $40 target price as it leverages warehouse automation to boost margins and funds targeted expansion across Asia. // Post-mortem review: Although near-term intrinsic cash flows remain intact, a catastrophic data breach compromising 33 million accounts and subsequent management missteps have structurally impaired Coupang's future valuation, driving shares down to $18 and necessitating a downward revision of the target price to reflect prolonged regulatory and reputational overhangs."
     default_pre: 100
     default_post: 200
     target_price: 40
