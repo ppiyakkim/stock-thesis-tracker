@@ -94,3 +94,10 @@ stocks:
     default_post: 180
     target_price: 1574
     tags: ["europe", "luxury", "consumer", "value"]
+  - ticker: 003490.KS
+    report_date: "2026-04-12"
+    label: "Korean Air Lines Co., Ltd"
+    thesis: ""
+    default_pre: 60
+    default_post: 60
+    tags: ["korea", "airline", "aviation"]
