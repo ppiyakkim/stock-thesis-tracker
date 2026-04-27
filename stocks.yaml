@@ -101,3 +101,11 @@ stocks:
     default_pre: 60
     default_post: 60
     tags: ["korea", "airline", "aviation"]
+  - ticker: NU
+    report_date: "2026-04-26"
+    label: "Nu Holdings Ltd. Class A Ordinary Shares"
+    thesis: ""
+    default_pre: 360
+    default_post: 360
+    target_price: 18.85
+    tags: ["financial", "emerging", "brazil"]
