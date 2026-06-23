@@ -109,3 +109,9 @@ stocks:
     default_post: 360
     target_price: 18.85
     tags: ["financial", "emerging", "brazil"]
+  - ticker: NEW
+    report_date: ""
+    label: ""
+    thesis: ""
+    default_pre: 60
+    default_post: 60
