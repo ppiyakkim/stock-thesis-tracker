@@ -109,9 +109,11 @@ stocks:
     default_post: 360
     target_price: 18.85
     tags: ["financial", "emerging", "brazil"]
-  - ticker: NEW
-    report_date: ""
-    label: ""
+  - ticker: 7974.T
+    report_date: "2026-06-20"
+    label: "Nintendo Co., Ltd"
     thesis: ""
     default_pre: 60
-    default_post: 60
+    default_post: 360
+    target_price: 8450
+    tags: ["japan", "game", "leisure", "cash"]
