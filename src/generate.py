@@ -1482,7 +1482,9 @@ def main():
         if s.get("archived"):
             print(f"  ⏭  {s['ticker']} (archived, skipping)")
             continue
-        ticker      = s["ticker"]
+        ticker = s.get("ticker", "")
+        if not ticker or not s.get("report_date"):
+            continue
         report_date = datetime.strptime(s["report_date"], "%Y-%m-%d")
         print(f"  → {ticker}  (report: {s['report_date']})")
         try:
