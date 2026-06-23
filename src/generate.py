@@ -123,8 +123,8 @@ def build_index(stocks: list) -> str:
     from collections import defaultdict
     from datetime import datetime as _dt
 
-    # Separate active vs archived
-    active   = [s for s in stocks if not s.get("archived")]
+    # Separate active vs archived; skip placeholder entries with no ticker/report_date
+    active   = [s for s in stocks if not s.get("archived") and s.get("ticker") and s.get("report_date")]
     archived = [s for s in stocks if s.get("archived")]
 
     stocks_json = json.dumps(active + archived, ensure_ascii=False)
